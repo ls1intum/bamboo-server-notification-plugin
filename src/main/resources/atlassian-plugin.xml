@@ -1,0 +1,16 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+        <param name="atlassian-data-center-compatible">true</param>
+
+    </plugin-info>
+
+
+    <notificationRecipient key="recipient.artemis" name="Artemis Recipient" class="de.tum.in.www1.bamboo.artemis.ArtemisNotificationRecipient" weight="10">
+        <description>Server</description>
+        <resource type="freemarker" name="edit" location="artemisEditNotification.ftl"/>
+        <resource type="freemarker" name="view" location="artemisViewNotification.ftl"/>
+    </notificationRecipient>
+</atlassian-plugin>
