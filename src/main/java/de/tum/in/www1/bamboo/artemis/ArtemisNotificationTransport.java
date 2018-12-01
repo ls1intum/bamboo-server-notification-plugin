@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public class ArtemisNotificationTransport implements NotificationTransport
@@ -141,7 +143,7 @@ public class ArtemisNotificationTransport implements NotificationTransport
                 buildDetails.put("number", resultsSummary.getBuildNumber());
                 buildDetails.put("reason", resultsSummary.getShortReasonSummary());
                 buildDetails.put("successful", resultsSummary.isSuccessful());
-                buildDetails.put("buildCompletedDate", resultsSummary.getBuildCompletedDate());
+                buildDetails.put("buildCompletedDate", ZonedDateTime.ofInstant(resultsSummary.getBuildCompletedDate().toInstant(), ZoneId.systemDefault()));
                 buildDetails.put("artifact", !resultsSummary.getArtifactLinks().isEmpty());
 
                 TestResultsSummary testResultsSummary = resultsSummary.getTestResultsSummary();
