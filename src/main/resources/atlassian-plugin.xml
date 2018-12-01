@@ -7,6 +7,8 @@
 
     </plugin-info>
 
+    <!-- internationalize your plugin -->
+    <resource type="i18n" name="Artemis Language Pack" location="english"/>
 
     <notificationRecipient key="recipient.artemis" name="Artemis Recipient" class="de.tum.in.www1.bamboo.artemis.ArtemisNotificationRecipient" weight="10">
         <description>Server</description>
