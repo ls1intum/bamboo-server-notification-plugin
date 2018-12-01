@@ -20,6 +20,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 
 import org.apache.http.impl.client.HttpClients;
@@ -96,12 +97,8 @@ public class ArtemisNotificationTransport implements NotificationTransport
         {
             HttpPost method = setupPostMethod();
             JSONObject jsonObject = createJSONObject();
-            JSONObject attachments = new JSONObject();
             try {
-                //TODO fill this with the information that Artemis needs
-                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
-                nameValuePairs.add(new BasicNameValuePair("payload", jsonObject.toString()));
-                method.setEntity(new UrlEncodedFormEntity(nameValuePairs, "UTF-8"));
+                method.setEntity(new StringEntity(jsonObject.toString()));
 
             } catch (UnsupportedEncodingException e) {
                 log.error("Unsupported Encoding Exception :" + e.getMessage(), e);
@@ -122,7 +119,9 @@ public class ArtemisNotificationTransport implements NotificationTransport
 
     private HttpPost setupPostMethod() throws URISyntaxException
     {
-        return new HttpPost(new URI(webhookUrl));
+        HttpPost post = new HttpPost((new URI(webhookUrl)));
+        post.setHeader("Content-Type", "application/json");
+        return post;
     }
 
     private JSONObject createJSONObject() {
