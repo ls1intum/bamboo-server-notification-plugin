@@ -8,19 +8,19 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.tum.in.www1</groupId>
-    <artifactId>bamboo-artemis</artifactId>
+    <artifactId>bamboo-server</artifactId>
     <version>1.0.0</version>
     <organization>
         <name>LS1 TUM</name>
         <url>http://www1.in.tum.de/</url>
     </organization>
     <scm>
-        <connection>scm:git:https://github.com/ls1intum/bamboo-artemis-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/ls1intum/bamboo-artemis-plugin.git</developerConnection>
-        <url>https://github.org/ls1intum/bamboo-artemis-plugin</url>
+        <connection>scm:git:https://github.com/ls1intum/bamboo-server-notification-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:ls1intum/bamboo-server-notification-plugin.git</developerConnection>
+        <url>https://github.com/ls1intum/bamboo-server-notification-plugin</url>
     </scm>
-    <name>Artemis Notifications for Bamboo</name>
-    <description>Notify Artemis when a build was executed.</description>
+    <name>Server Notifications for Bamboo</name>
+    <description>Notify a Server when a build was executed.</description>
     <packaging>atlassian-plugin</packaging>
     <properties>
         <bamboo.version>5.9.10</bamboo.version>

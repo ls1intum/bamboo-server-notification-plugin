@@ -1,4 +1,4 @@
-Artemis Notifications for Bamboo
+Server Notifications for Bamboo
 ==============================
 
 This plugin sends [Bamboo](https://www.atlassian.com/software/bamboo) notifications to any server URL.

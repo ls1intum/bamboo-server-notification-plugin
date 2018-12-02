@@ -1,15 +1,13 @@
-package de.tum.in.www1.bamboo.artemis;
+package de.tum.in.www1.bamboo.server;
 
 import com.atlassian.bamboo.chains.ChainResultsSummary;
 import com.atlassian.bamboo.commit.Commit;
 import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.notification.Notification;
 import com.atlassian.bamboo.notification.NotificationTransport;
-import com.atlassian.bamboo.notification.chain.ChainCompletedNotification;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.resultsummary.BuildResultsSummary;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
-import com.atlassian.bamboo.resultsummary.tests.TestCase;
 import com.atlassian.bamboo.resultsummary.tests.TestCaseResult;
 import com.atlassian.bamboo.resultsummary.tests.TestCaseResultError;
 import com.atlassian.bamboo.resultsummary.tests.TestResultsSummary;
@@ -17,15 +15,12 @@ import com.atlassian.bamboo.resultsummary.vcs.RepositoryChangeset;
 import com.atlassian.bamboo.utils.HttpUtils;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import org.apache.http.HttpHost;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,11 +34,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
 
-public class ArtemisNotificationTransport implements NotificationTransport
+public class ServerNotificationTransport implements NotificationTransport
 {
-    private static final Logger log = Logger.getLogger(ArtemisNotificationTransport.class);
+    private static final Logger log = Logger.getLogger(ServerNotificationTransport.class);
 
     private final String webhookUrl;
 
@@ -56,11 +50,11 @@ public class ArtemisNotificationTransport implements NotificationTransport
     @Nullable
     private final DeploymentResult deploymentResult;
 
-    public ArtemisNotificationTransport(String webhookUrl,
-                                        @Nullable ImmutablePlan plan,
-                                        @Nullable ResultsSummary resultsSummary,
-                                        @Nullable DeploymentResult deploymentResult,
-                                        CustomVariableContext customVariableContext)
+    public ServerNotificationTransport(String webhookUrl,
+                                       @Nullable ImmutablePlan plan,
+                                       @Nullable ResultsSummary resultsSummary,
+                                       @Nullable DeploymentResult deploymentResult,
+                                       CustomVariableContext customVariableContext)
     {
         this.webhookUrl = customVariableContext.substituteString(webhookUrl);
         this.plan = plan;
@@ -96,7 +90,7 @@ public class ArtemisNotificationTransport implements NotificationTransport
         try
         {
             HttpPost method = setupPostMethod();
-            JSONObject jsonObject = createJSONObject();
+            JSONObject jsonObject = createJSONObject(notification);
             try {
                 method.setEntity(new StringEntity(jsonObject.toString()));
 
@@ -124,10 +118,11 @@ public class ArtemisNotificationTransport implements NotificationTransport
         return post;
     }
 
-    private JSONObject createJSONObject() {
+    private JSONObject createJSONObject(Notification notification) {
         JSONObject jsonObject = new JSONObject();
         try {
 
+            jsonObject.put("notificationType", notification.getDescription());
 
             if (plan != null) {
                 JSONObject planDetails = new JSONObject();

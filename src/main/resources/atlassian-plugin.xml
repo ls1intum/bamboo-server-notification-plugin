@@ -8,11 +8,11 @@
     </plugin-info>
 
     <!-- internationalize your plugin -->
-    <resource type="i18n" name="Artemis Language Pack" location="english"/>
+    <resource type="i18n" name="Server Language Pack" location="english"/>
 
-    <notificationRecipient key="recipient.artemis" name="Artemis Recipient" class="de.tum.in.www1.bamboo.artemis.ArtemisNotificationRecipient" weight="10">
+    <notificationRecipient key="recipient.server" name="Server Recipient" class="de.tum.in.www1.bamboo.server.ServerNotificationRecipient" weight="10">
         <description>Server</description>
-        <resource type="freemarker" name="edit" location="artemisEditNotification.ftl"/>
-        <resource type="freemarker" name="view" location="artemisViewNotification.ftl"/>
+        <resource type="freemarker" name="edit" location="serverEditNotification.ftl"/>
+        <resource type="freemarker" name="view" location="serverViewNotification.ftl"/>
     </notificationRecipient>
 </atlassian-plugin>
