@@ -1,1 +1,0 @@
-[@ww.textfield labelKey="artemis.webhookUrl" name="webhookUrl" value="${webhookUrl!}" required='true'/]

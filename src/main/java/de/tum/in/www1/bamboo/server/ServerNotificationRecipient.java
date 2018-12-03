@@ -1,4 +1,4 @@
-package de.tum.in.www1.bamboo.artemis;
+package de.tum.in.www1.bamboo.server;
 
 import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.notification.NotificationRecipient;
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 
-public class ArtemisNotificationRecipient extends AbstractNotificationRecipient implements DeploymentResultAwareNotificationRecipient,
+public class ServerNotificationRecipient extends AbstractNotificationRecipient implements DeploymentResultAwareNotificationRecipient,
                                                                                            NotificationRecipient.RequiresPlan,
                                                                                            NotificationRecipient.RequiresResultSummary
 
@@ -116,7 +116,7 @@ public class ArtemisNotificationRecipient extends AbstractNotificationRecipient 
     public List<NotificationTransport> getTransports()
     {
         List<NotificationTransport> list = Lists.newArrayList();
-        list.add(new ArtemisNotificationTransport(webhookUrl, plan, resultsSummary, deploymentResult, customVariableContext));
+        list.add(new ServerNotificationTransport(webhookUrl, plan, resultsSummary, deploymentResult, customVariableContext));
         return list;
     }
 
