@@ -15,4 +15,8 @@
         <resource type="freemarker" name="edit" location="serverEditNotification.ftl"/>
         <resource type="freemarker" name="view" location="serverViewNotification.ftl"/>
     </notificationRecipient>
+
+    <component-import key="variableDefinitionManager">
+        <interface>com.atlassian.bamboo.variable.VariableDefinitionManager</interface>
+    </component-import>
 </atlassian-plugin>
