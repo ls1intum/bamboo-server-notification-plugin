@@ -14,6 +14,10 @@ import com.atlassian.bamboo.resultsummary.tests.TestResultsSummary;
 import com.atlassian.bamboo.resultsummary.vcs.RepositoryChangeset;
 import com.atlassian.bamboo.utils.HttpUtils;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.bamboo.variable.VariableDefinition;
+import com.atlassian.bamboo.variable.VariableDefinitionManager;
+import com.atlassian.spring.container.ContainerManager;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -27,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -49,6 +54,8 @@ public class ServerNotificationTransport implements NotificationTransport
     private final ResultsSummary resultsSummary;
     @Nullable
     private final DeploymentResult deploymentResult;
+
+    private VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager"); // Will be injected by Bamboo
 
     public ServerNotificationTransport(String webhookUrl,
                                        @Nullable ImmutablePlan plan,
@@ -92,10 +99,17 @@ public class ServerNotificationTransport implements NotificationTransport
             HttpPost method = setupPostMethod();
             JSONObject jsonObject = createJSONObject(notification);
             try {
+                String secret = (String) jsonObject.get("secret");
+                method.addHeader("Authorization", secret);
+            } catch (JSONException e) {
+                log.error("Error while getting secret from JSONObject: " + e.getMessage(), e);
+            }
+
+            try {
                 method.setEntity(new StringEntity(jsonObject.toString()));
 
             } catch (UnsupportedEncodingException e) {
-                log.error("Unsupported Encoding Exception :" + e.getMessage(), e);
+                log.error("Unsupported Encoding Exception: " + e.getMessage(), e);
             }
             try {
                 log.debug(method.getURI().toString());
@@ -121,7 +135,10 @@ public class ServerNotificationTransport implements NotificationTransport
     private JSONObject createJSONObject(Notification notification) {
         JSONObject jsonObject = new JSONObject();
         try {
+            // Variable name contains "password" to ensure that the secret is hidden in the UI
+            VariableDefinition secretVariable = variableDefinitionManager.getGlobalVariables().stream().filter(vd -> vd.getKey().equals("SERVER_PLUGIN_SECRET_PASSWORD")).findFirst().get();
 
+            jsonObject.put("secret", secretVariable.getValue()); // Used to verify that the request is coming from a legitimate server
             jsonObject.put("notificationType", notification.getDescription());
 
             if (plan != null) {

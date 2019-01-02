@@ -9,6 +9,8 @@ This plugin allows you to take advantage of Bamboo's:
 
 -	flexible notification system (ie tell me when this build fails more than 5 times!)
 
+Requests can be validated by checking the secret, which is both included in the request body and sent as "Authorization"-Header.
+
 Notifications Supported
 -----------------------
 
@@ -20,7 +22,8 @@ Setup
 1.	Go to the *Notifications* tab of the *Configure Plan* screen.
 2.	Choose a *Recipient Type* of *Server*
 3.	Configure your *Server URL*
-4.	You're done! Go and get building.
+4.  Create a global variable named *SERVER_PLUGIN_SECRET_PASSWORD*, the value if this variable will be used as secret.
+5.	You're done! Go and get building.
 
 Compiling from source
 ---------------------
@@ -103,6 +106,7 @@ Sample request
              ],
              "successful":false
           },
+          "secret":"SomeVerySecretToken",
           "notificationType":"Completed Plan Notification",
           "plan":{
              "key":"SC1AC4ASD-BASE"
