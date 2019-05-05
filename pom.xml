@@ -23,7 +23,7 @@
     <description>Notify a Server when a build was executed.</description>
     <packaging>atlassian-plugin</packaging>
     <properties>
-        <bamboo.version>5.9.10</bamboo.version>
+        <bamboo.version>6.8.1</bamboo.version>
         <bamboo.data.version>${bamboo.version}</bamboo.data.version>
         <amps.version>6.3.21</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>

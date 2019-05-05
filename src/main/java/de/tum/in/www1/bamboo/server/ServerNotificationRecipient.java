@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +36,21 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     private ResultsSummary resultsSummary;
     private DeploymentResult deploymentResult;
     private CustomVariableContext customVariableContext;
+
+    // Time in seconds before removing TestResultsContainer
+    private static final int TESTRESULTSCONTAINER_REMOVE_TIME = 60;
+
+    /*
+     * The TestResults of successful tests can not be loaded from the ChainResultSummary (only failing ones can).
+     * The TestResults need a BuildContext and can therefor only be accessed when using an Event that extends BuildContextEvent.
+     * The normal BuildCompletedEvent does not extend BuildContextEvent, but the PostBuildCompletedEvent does.
+     * We listen for the PostBuildCompletedEvent and save the test cases in this Map with the key of the job as String.
+     * The TestResults are stored inside the TestResultsContainer class and it can be retrieved using this Map in the ServerNotificationTransport class.
+     * A method clearOldTestResultsContainer() has been added, that removes old TestResultsContainer from the Map, because we add every build to this Map, even those without
+     * Notifications enabled.
+     * The time (in seconds) after the TestResultsContainer can be specified in the variable TESTRESULTSCONTAINER_REMOVE_TIME.
+     */
+    private static Map<String, TestResultsContainer> cachedTestResults = new HashMap<>();
 
     @Override
     public void populate(@NotNull Map<String, String[]> params)
@@ -138,6 +154,14 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     public void setResultsSummary(@Nullable final ResultsSummary resultsSummary)
     {
         this.resultsSummary = resultsSummary;
+    }
+
+    public static Map<String, TestResultsContainer> getCachedTestResults() {
+        return cachedTestResults;
+    }
+
+    public static void clearOldTestResultsContainer() {
+        getCachedTestResults().entrySet().removeIf(entry -> entry.getValue().getInitTimestamp() < (System.currentTimeMillis() - (1000 * TESTRESULTSCONTAINER_REMOVE_TIME)));
     }
 
     //-----------------------------------Dependencies
