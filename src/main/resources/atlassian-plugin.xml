@@ -19,4 +19,7 @@
     <component-import key="variableDefinitionManager">
         <interface>com.atlassian.bamboo.variable.VariableDefinitionManager</interface>
     </component-import>
+
+    <bambooEventListener key="buildCompleteListener"
+                         class="de.tum.in.www1.bamboo.server.BuildCompleteListener"/>
 </atlassian-plugin>

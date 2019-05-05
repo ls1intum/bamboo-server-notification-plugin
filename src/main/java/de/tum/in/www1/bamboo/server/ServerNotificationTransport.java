@@ -1,14 +1,15 @@
 package de.tum.in.www1.bamboo.server;
 
 import com.atlassian.bamboo.chains.ChainResultsSummary;
+import com.atlassian.bamboo.chains.ChainStageResult;
 import com.atlassian.bamboo.commit.Commit;
 import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.notification.Notification;
 import com.atlassian.bamboo.notification.NotificationTransport;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
+import com.atlassian.bamboo.results.tests.TestResults;
 import com.atlassian.bamboo.resultsummary.BuildResultsSummary;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
-import com.atlassian.bamboo.resultsummary.tests.TestCaseResult;
 import com.atlassian.bamboo.resultsummary.tests.TestCaseResultError;
 import com.atlassian.bamboo.resultsummary.tests.TestResultsSummary;
 import com.atlassian.bamboo.resultsummary.vcs.RepositoryChangeset;
@@ -17,7 +18,6 @@ import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
-import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -31,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -39,6 +38,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 
 public class ServerNotificationTransport implements NotificationTransport
 {
@@ -116,7 +116,7 @@ public class ServerNotificationTransport implements NotificationTransport
                 log.debug(method.getEntity().toString());
                 client.execute(method);
             } catch (IOException e) {
-                log.error("Error using Slack API: " + e.getMessage(), e);
+                log.error("Error while sending payload: " + e.getMessage(), e);
             }
         }
         catch(URISyntaxException e)
@@ -197,41 +197,35 @@ public class ServerNotificationTransport implements NotificationTransport
 
                 if (resultsSummary instanceof ChainResultsSummary) {
                     ChainResultsSummary chainResultsSummary = (ChainResultsSummary) resultsSummary;
+                    JSONArray jobs = new JSONArray();
+                    for (ChainStageResult chainStageResult : chainResultsSummary.getStageResults()) {
+                        for (BuildResultsSummary buildResultsSummary : chainStageResult.getBuildResults()) {
 
-                    JSONArray failedJobs = new JSONArray();
-                    for (BuildResultsSummary failedJob : chainResultsSummary.getFailedJobResults()) {
-                        JSONObject failedJobDetails = new JSONObject();
+                            JSONObject jobDetails = new JSONObject();
 
-                        failedJobDetails.put("id", failedJob.getId());
+                            jobDetails.put("id", buildResultsSummary.getId());
 
-                        JSONArray testDetails = new JSONArray();
+                            TestResultsContainer testResultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
+                            if (testResultsContainer != null) {
+                                JSONArray successfulTestDetails = createTestsResultsJSONArray(testResultsContainer.getSuccessfulTests(), false);
+                                jobDetails.put("successfulTests", successfulTestDetails);
 
-                        for (TestCaseResult testCaseResult : failedJob.getFilteredTestResults().getAllFailedTestList()) {
-                            JSONObject testCaseDetails = new JSONObject();
-                            testCaseDetails.put("name", testCaseResult.getName());
-                            testCaseDetails.put("methodName", testCaseResult.getMethodName());
-                            testCaseDetails.put("className", testCaseResult.getTestCase().getTestClass().getName());
+                                JSONArray skippedTestDetails = createTestsResultsJSONArray(testResultsContainer.getSkippedTests(), false);
+                                jobDetails.put("skippedTests", skippedTestDetails);
 
-                            JSONArray testCaseErrorDetails = new JSONArray();
-                            for(TestCaseResultError testCaseResultError : testCaseResult.getErrors()) {
-                                testCaseErrorDetails.put(testCaseResultError.getContent());
+                                JSONArray failedTestDetails = createTestsResultsJSONArray(testResultsContainer.getFailedTests(), true);
+                                jobDetails.put("failedTests", failedTestDetails);
                             }
-
-                            testCaseDetails.put("errors", testCaseErrorDetails);
-
-                            testDetails.put(testCaseDetails);
+                            jobs.put(jobDetails);
                         }
-
-                        failedJobDetails.put("failedTests", testDetails);
-
-                        failedJobs.put(failedJobDetails);
                     }
+                    buildDetails.put("jobs", jobs);
 
-                    buildDetails.put("failedJobs", failedJobs);
+                    // TODO: This ensures outdated versions of Artemis can still process the new request. Will be removed without further notice in the future
+                    buildDetails.put("failedJobs", jobs);
                 }
 
                 jsonObject.put("build", buildDetails);
-
             }
 
 
@@ -240,5 +234,31 @@ public class ServerNotificationTransport implements NotificationTransport
         }
 
         return  jsonObject;
+    }
+
+    private JSONObject createTestsResultsJSONObject(TestResults testResults, boolean addErrors) throws JSONException {
+        JSONObject testResultsJSON = new JSONObject();
+        testResultsJSON.put("name", testResults.getActualMethodName());
+        testResultsJSON.put("methodName", testResults.getMethodName());
+        testResultsJSON.put("className", testResults.getClassName());
+
+        if (addErrors) {
+            JSONArray testCaseErrorDetails = new JSONArray();
+            for(TestCaseResultError testCaseResultError : testResults.getErrors()) {
+                testCaseErrorDetails.put(testCaseResultError.getContent());
+            }
+            testResultsJSON.put("errors", testCaseErrorDetails);
+        }
+
+        return testResultsJSON;
+    }
+
+    private JSONArray createTestsResultsJSONArray(Collection<TestResults> testResultsCollection, boolean addErrors) throws JSONException {
+        JSONArray testResultsArray = new JSONArray();
+        for (TestResults testResults : testResultsCollection) {
+            testResultsArray.put(createTestsResultsJSONObject(testResults, addErrors));
+        }
+
+        return testResultsArray;
     }
 }
