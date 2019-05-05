@@ -17,9 +17,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ServerNotificationRecipient extends AbstractNotificationRecipient implements DeploymentResultAwareNotificationRecipient,
                                                                                            NotificationRecipient.RequiresPlan,
@@ -50,7 +50,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
      * Notifications enabled.
      * The time (in seconds) after the TestResultsContainer can be specified in the variable TESTRESULTSCONTAINER_REMOVE_TIME.
      */
-    private static Map<String, TestResultsContainer> cachedTestResults = new HashMap<>();
+    private static Map<String, TestResultsContainer> cachedTestResults = new ConcurrentHashMap<>();
 
     @Override
     public void populate(@NotNull Map<String, String[]> params)
