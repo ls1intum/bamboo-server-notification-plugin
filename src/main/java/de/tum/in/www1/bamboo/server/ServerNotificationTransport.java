@@ -220,6 +220,9 @@ public class ServerNotificationTransport implements NotificationTransport
                         }
                     }
                     buildDetails.put("jobs", jobs);
+
+                    // TODO: This ensures outdated versions of Artemis can still process the new request. Will be removed without further notice in the future
+                    buildDetails.put("failedJobs", jobs);
                 }
 
                 jsonObject.put("build", buildDetails);
