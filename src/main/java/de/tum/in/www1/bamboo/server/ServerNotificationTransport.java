@@ -20,6 +20,7 @@ import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collection;
@@ -105,12 +107,8 @@ public class ServerNotificationTransport implements NotificationTransport
                 log.error("Error while getting secret from JSONObject: " + e.getMessage(), e);
             }
 
-            try {
-                method.setEntity(new StringEntity(jsonObject.toString()));
+            method.setEntity(new StringEntity(jsonObject.toString(), ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8)));
 
-            } catch (UnsupportedEncodingException e) {
-                log.error("Unsupported Encoding Exception: " + e.getMessage(), e);
-            }
             try {
                 log.debug(method.getURI().toString());
                 log.debug(method.getEntity().toString());
