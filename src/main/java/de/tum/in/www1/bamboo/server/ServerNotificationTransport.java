@@ -288,7 +288,9 @@ public class ServerNotificationTransport implements NotificationTransport
         if (addErrors) {
             JSONArray testCaseErrorDetails = new JSONArray();
             for(TestCaseResultError testCaseResultError : testResults.getErrors()) {
-                testCaseErrorDetails.put(testCaseResultError.getContent());
+                String content = testCaseResultError.getContent();
+                content = content.substring(0, Math.min(content.length(), 5000));
+                testCaseErrorDetails.put(content);
             }
             testResultsJSON.put("errors", testCaseErrorDetails);
         }
