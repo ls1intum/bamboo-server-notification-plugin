@@ -1,5 +1,6 @@
 package de.tum.in.www1.bamboo.server;
 
+import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.notification.NotificationRecipient;
 import com.atlassian.bamboo.notification.NotificationTransport;
@@ -36,6 +37,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     private ResultsSummary resultsSummary;
     private DeploymentResult deploymentResult;
     private CustomVariableContext customVariableContext;
+    private static BuildLoggerManager buildLoggerManager;
 
     // Time in seconds before removing TestResultsContainer
     private static final int TESTRESULTSCONTAINER_REMOVE_TIME = 60;
@@ -132,7 +134,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     public List<NotificationTransport> getTransports()
     {
         List<NotificationTransport> list = Lists.newArrayList();
-        list.add(new ServerNotificationTransport(webhookUrl, plan, resultsSummary, deploymentResult, customVariableContext));
+        list.add(new ServerNotificationTransport(webhookUrl, plan, resultsSummary, deploymentResult, customVariableContext, buildLoggerManager));
         return list;
     }
 
@@ -154,6 +156,16 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     public void setResultsSummary(@Nullable final ResultsSummary resultsSummary)
     {
         this.resultsSummary = resultsSummary;
+    }
+
+    public void setBuildLoggerManager(@Nullable final BuildLoggerManager buildLoggerManager)
+    {
+        this.buildLoggerManager = buildLoggerManager;
+    }
+
+    public static BuildLoggerManager getBuildLoggerManager()
+    {
+        return buildLoggerManager;
     }
 
     public static Map<String, TestResultsContainer> getCachedTestResults() {
