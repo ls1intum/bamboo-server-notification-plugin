@@ -20,6 +20,8 @@
         <interface>com.atlassian.bamboo.variable.VariableDefinitionManager</interface>
     </component-import>
 
+    <component-import key="buildLoggerManager" interface="com.atlassian.bamboo.build.BuildLoggerManager"/>
+
     <bambooEventListener key="buildCompleteListener"
                          class="de.tum.in.www1.bamboo.server.BuildCompleteListener"/>
 </atlassian-plugin>

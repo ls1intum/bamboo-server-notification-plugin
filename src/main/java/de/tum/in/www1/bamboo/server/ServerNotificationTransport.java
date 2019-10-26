@@ -1,5 +1,7 @@
 package de.tum.in.www1.bamboo.server;
 
+import com.atlassian.bamboo.build.BuildLoggerManager;
+import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.chains.ChainResultsSummary;
 import com.atlassian.bamboo.chains.ChainStageResult;
 import com.atlassian.bamboo.commit.Commit;
@@ -34,7 +36,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -56,6 +57,8 @@ public class ServerNotificationTransport implements NotificationTransport
     private final ResultsSummary resultsSummary;
     @Nullable
     private final DeploymentResult deploymentResult;
+    @Nullable
+    private final BuildLoggerManager buildLoggerManager;
 
     private VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager"); // Will be injected by Bamboo
 
@@ -63,12 +66,14 @@ public class ServerNotificationTransport implements NotificationTransport
                                        @Nullable ImmutablePlan plan,
                                        @Nullable ResultsSummary resultsSummary,
                                        @Nullable DeploymentResult deploymentResult,
-                                       CustomVariableContext customVariableContext)
+                                       CustomVariableContext customVariableContext,
+                                       BuildLoggerManager buildLoggerManager)
     {
         this.webhookUrl = customVariableContext.substituteString(webhookUrl);
         this.plan = plan;
         this.resultsSummary = resultsSummary;
         this.deploymentResult = deploymentResult;
+        this.buildLoggerManager = buildLoggerManager;
 
         URI uri;
         try
@@ -77,6 +82,7 @@ public class ServerNotificationTransport implements NotificationTransport
         }
         catch (URISyntaxException e)
         {
+            logErrorToBuildLog("Unable to set up proxy settings, invalid URI encountered: " + e);
             log.error("Unable to set up proxy settings, invalid URI encountered: " + e);
             return;
         }
@@ -96,6 +102,7 @@ public class ServerNotificationTransport implements NotificationTransport
 
     public void sendNotification(@NotNull Notification notification)
     {
+        logToBuildLog("Sending notification");
         try
         {
             HttpPost method = setupPostMethod();
@@ -104,21 +111,26 @@ public class ServerNotificationTransport implements NotificationTransport
                 String secret = (String) jsonObject.get("secret");
                 method.addHeader("Authorization", secret);
             } catch (JSONException e) {
+                logErrorToBuildLog("Error while getting secret from JSONObject: " + e.getMessage());
                 log.error("Error while getting secret from JSONObject: " + e.getMessage(), e);
             }
 
             method.setEntity(new StringEntity(jsonObject.toString(), ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8)));
 
             try {
+                logToBuildLog("Executing call to " + method.getURI().toString());
                 log.debug(method.getURI().toString());
                 log.debug(method.getEntity().toString());
                 client.execute(method);
+                logToBuildLog("Call executed");
             } catch (IOException e) {
+                logErrorToBuildLog("Error while sending payload: " + e.getMessage());
                 log.error("Error while sending payload: " + e.getMessage(), e);
             }
         }
         catch(URISyntaxException e)
         {
+            logErrorToBuildLog("Error parsing webhook url: " + e.getMessage());
             log.error("Error parsing webhook url: " + e.getMessage(), e);
         }
     }
@@ -131,6 +143,7 @@ public class ServerNotificationTransport implements NotificationTransport
     }
 
     private JSONObject createJSONObject(Notification notification) {
+        logToBuildLog("Creating JSON object");
         JSONObject jsonObject = new JSONObject();
         try {
             // Variable name contains "password" to ensure that the secret is hidden in the UI
@@ -203,8 +216,10 @@ public class ServerNotificationTransport implements NotificationTransport
 
                             jobDetails.put("id", buildResultsSummary.getId());
 
+                            logToBuildLog("Loading cached test results");
                             TestResultsContainer testResultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
                             if (testResultsContainer != null) {
+                                logToBuildLog("Tests results found");
                                 JSONArray successfulTestDetails = createTestsResultsJSONArray(testResultsContainer.getSuccessfulTests(), false);
                                 jobDetails.put("successfulTests", successfulTestDetails);
 
@@ -213,6 +228,8 @@ public class ServerNotificationTransport implements NotificationTransport
 
                                 JSONArray failedTestDetails = createTestsResultsJSONArray(testResultsContainer.getFailedTests(), true);
                                 jobDetails.put("failedTests", failedTestDetails);
+                            } else {
+                                logErrorToBuildLog("Could not load cached test results!");
                             }
                             jobs.put(jobDetails);
                         }
@@ -228,13 +245,16 @@ public class ServerNotificationTransport implements NotificationTransport
 
 
         } catch (JSONException e) {
+            logErrorToBuildLog("JSON construction error :" + e.getMessage());
             log.error("JSON construction error :" + e.getMessage(), e);
         }
 
-        return  jsonObject;
+        logToBuildLog("JSON object created");
+        return jsonObject;
     }
 
     private JSONObject createTestsResultsJSONObject(TestResults testResults, boolean addErrors) throws JSONException {
+        logToBuildLog("Creating test results JSON object for " + testResults.getActualMethodName());
         JSONObject testResultsJSON = new JSONObject();
         testResultsJSON.put("name", testResults.getActualMethodName());
         testResultsJSON.put("methodName", testResults.getMethodName());
@@ -252,11 +272,22 @@ public class ServerNotificationTransport implements NotificationTransport
     }
 
     private JSONArray createTestsResultsJSONArray(Collection<TestResults> testResultsCollection, boolean addErrors) throws JSONException {
+        logToBuildLog("Creating test results JSON array");
         JSONArray testResultsArray = new JSONArray();
         for (TestResults testResults : testResultsCollection) {
             testResultsArray.put(createTestsResultsJSONObject(testResults, addErrors));
         }
 
         return testResultsArray;
+    }
+
+    private void logToBuildLog(String s) {
+        BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
+        buildLogger.addBuildLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
+    }
+
+    private void logErrorToBuildLog(String s) {
+        BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
+        buildLogger.addErrorLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
     }
 }
