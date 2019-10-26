@@ -20,7 +20,10 @@ import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -28,6 +31,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +39,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -121,9 +124,31 @@ public class ServerNotificationTransport implements NotificationTransport
                 logToBuildLog("Executing call to " + method.getURI().toString());
                 log.debug(method.getURI().toString());
                 log.debug(method.getEntity().toString());
-                client.execute(method);
+                CloseableHttpResponse closeableHttpResponse = client.execute(method);
                 logToBuildLog("Call executed");
-            } catch (IOException e) {
+                if (closeableHttpResponse != null) {
+                    logToBuildLog("Response is not null: " + closeableHttpResponse.toString());
+
+                    StatusLine statusLine = closeableHttpResponse.getStatusLine();
+                    if (statusLine != null) {
+                        logToBuildLog("StatusLine is not null: " + statusLine.toString());
+                        logToBuildLog("StatusCode is: " + statusLine.getStatusCode());
+                    } else {
+                        logErrorToBuildLog("Statusline is null");
+                    }
+
+                    HttpEntity httpEntity = closeableHttpResponse.getEntity();
+                    if (httpEntity != null) {
+                        String response = EntityUtils.toString(httpEntity);
+                        logToBuildLog("Response from entity is: " + response);
+                        EntityUtils.consume(httpEntity);
+                    } else {
+                        logErrorToBuildLog("Httpentity is null");
+                    }
+                } else {
+                    logErrorToBuildLog("Response is null");
+                }
+            } catch (Exception e) {
                 logErrorToBuildLog("Error while sending payload: " + e.getMessage());
                 log.error("Error while sending payload: " + e.getMessage(), e);
             }
