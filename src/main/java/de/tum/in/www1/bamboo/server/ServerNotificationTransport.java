@@ -65,6 +65,9 @@ public class ServerNotificationTransport implements NotificationTransport
 
     private VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager"); // Will be injected by Bamboo
 
+    // Maximum length for the feedback text. The feedback will be truncated afterwards
+    private static int FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS = 5000;
+
     public ServerNotificationTransport(String webhookUrl,
                                        @Nullable ImmutablePlan plan,
                                        @Nullable ResultsSummary resultsSummary,
@@ -288,9 +291,11 @@ public class ServerNotificationTransport implements NotificationTransport
         if (addErrors) {
             JSONArray testCaseErrorDetails = new JSONArray();
             for(TestCaseResultError testCaseResultError : testResults.getErrors()) {
-                String content = testCaseResultError.getContent();
-                content = content.substring(0, Math.min(content.length(), 5000));
-                testCaseErrorDetails.put(content);
+                String errorMessageString = testCaseResultError.getContent();
+                if(errorMessageString != null && errorMessageString.length() > FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS) {
+                    errorMessageString = errorMessageString.substring(0, FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS);
+                }
+                testCaseErrorDetails.put(errorMessageString);
             }
             testResultsJSON.put("errors", testCaseErrorDetails);
         }
