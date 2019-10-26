@@ -307,12 +307,20 @@ public class ServerNotificationTransport implements NotificationTransport
     }
 
     private void logToBuildLog(String s) {
-        BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
-        buildLogger.addBuildLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
+        if (buildLoggerManager != null && plan != null) {
+            BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
+            if (buildLogger != null) {
+                buildLogger.addBuildLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
+            }
+        }
     }
 
     private void logErrorToBuildLog(String s) {
-        BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
-        buildLogger.addErrorLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
+        if (buildLoggerManager != null && plan != null) {
+            BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
+            if (buildLogger != null) {
+                buildLogger.addErrorLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
+            }
+        }
     }
 }
