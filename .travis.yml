@@ -17,9 +17,9 @@ before_install:
 - export PATH=opt/atlassian-plugin-sdk/bin:opt/atlassian-plugin-sdk/apache-maven-*/bin:$PATH
 - atlas-version
 install:
-- atlas-mvn install
+- atlas-mvn install -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true
 script:
-- atlas-mvn package
+- atlas-mvn package -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true
 
 after_success:
 # CREATE GIT TAG
