@@ -9,7 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.tum.in.www1</groupId>
     <artifactId>bamboo-server</artifactId>
-    <version>1.1.5</version>
+    <version>1.2.0</version>
     <organization>
         <name>LS1 TUM</name>
         <url>http://www1.in.tum.de/</url>
@@ -23,7 +23,7 @@
     <description>Notify a Server when a build was executed.</description>
     <packaging>atlassian-plugin</packaging>
     <properties>
-        <bamboo.version>6.8.1</bamboo.version>
+        <bamboo.version>7.0.2</bamboo.version>
         <bamboo.data.version>${bamboo.version}</bamboo.data.version>
         <amps.version>6.3.21</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
