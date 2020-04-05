@@ -3,6 +3,10 @@ sudo: false
 
 language: java
 
+env:
+  global:
+    - JAVA_TOOL_OPTIONS=-Dhttps.protocols=TLSv1.2
+
 branches:
   except:
   - /^v[0-9]*/
