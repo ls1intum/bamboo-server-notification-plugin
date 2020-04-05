@@ -294,7 +294,7 @@ public class ServerNotificationTransport implements NotificationTransport
                                 // A lambda here would require us to catch the JSONException inside the lambda, so we use a loop.
                                 logEntriesArray.put(createLogEntryJSONObject(logEntry));
                             }
-                            jobDetails.put("log", logEntriesArray); // We add an empty array here in case tests are found to prevent errors while parsing in the client
+                            jobDetails.put("logs", logEntriesArray); // We add an empty array here in case tests are found to prevent errors while parsing in the client
 
                             jobs.put(jobDetails);
                         }

@@ -39,6 +39,10 @@ Feedback? Questions?
 
 Email: krusche@in.tum.de
 
+Debug
+-----
+
+You can reach the debug log under `<bamboo-host>/chain/viewChainActivityLog.action?planKey=XXX`.
 
 Sample request
 --------------
