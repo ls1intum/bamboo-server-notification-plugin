@@ -165,7 +165,8 @@ Sample request
                   "className":"de.de.ClassTest"
                }
             ],
-            "id":14581874
+            "id":14581874,
+            "logs": []
          }
       ],
       "successful":false
