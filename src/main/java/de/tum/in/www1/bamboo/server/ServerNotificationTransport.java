@@ -258,9 +258,6 @@ public class ServerNotificationTransport implements NotificationTransport
 
                             jobDetails.put("id", buildResultsSummary.getId());
 
-                            logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
-                            JSONObject artifacts = createArtifactJSONObjectForJob(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
-
                             logToBuildLog("Loading cached test results for job " + buildResultsSummary.getId());
                             TestResultsContainer testResultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
                             if (testResultsContainer != null) {
@@ -276,6 +273,10 @@ public class ServerNotificationTransport implements NotificationTransport
                             } else {
                                 logErrorToBuildLog("Could not load cached test results!");
                             }
+                            logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
+                            JSONObject artifacts = createArtifactJSONObjectForJob(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
+                            jobDetails.put("artifacts", artifacts);
+
                             jobs.put(jobDetails);
                         }
                     }
