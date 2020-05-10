@@ -55,6 +55,7 @@ import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -299,10 +300,10 @@ public class ServerNotificationTransport implements NotificationTransport
         return jsonObject;
     }
 
-    private String fileToString(Path path) {
+    private String encodeFileWithBase64(Path path) {
         try {
             // Use convenience method to read in the files as reports are not expected to be large
-            return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            return Base64.getEncoder().encodeToString(Files.readAllBytes(path));
         } catch (IOException e) {
             logErrorToBuildLog("Error reading in artifact file " + path.toString() + e.getMessage());
             return null;
@@ -313,10 +314,10 @@ public class ServerNotificationTransport implements NotificationTransport
         try {
             JSONObject artifactJSON = new JSONObject();
             File artifactFile = path.toFile();
-            artifactJSON.put("label", artifactFile.getName());
+            artifactJSON.put("label", label);
             artifactJSON.put("filename", artifactFile.getName());
-            artifactJSON.put("content", fileToString(path));
-            artifactJSON.put("path", path.toString());
+            artifactJSON.put("content", encodeFileWithBase64(path));
+            artifactJSON.put("encoding", "base64");
             return artifactJSON;
         } catch (JSONException e) {
             log.error("JSON construction error for " + path.toString(), e);
