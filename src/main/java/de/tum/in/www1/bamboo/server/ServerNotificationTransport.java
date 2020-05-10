@@ -54,6 +54,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -226,7 +227,6 @@ public class ServerNotificationTransport implements NotificationTransport
 
                 buildDetails.put("testSummary", testResultOverview);
 
-
                 JSONArray vcsDetails = new JSONArray();
                 for (RepositoryChangeset changeset : resultsSummary.getRepositoryChangesets()) {
                     JSONObject changesetDetails = new JSONObject();
@@ -274,7 +274,7 @@ public class ServerNotificationTransport implements NotificationTransport
                                 logErrorToBuildLog("Could not load cached test results!");
                             }
                             logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
-                            JSONObject artifacts = createArtifactJSONObjectForJob(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
+                            JSONArray artifacts = createArtifactArrayForJob(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
                             jobDetails.put("artifacts", artifacts);
 
                             jobs.put(jobDetails);
@@ -301,7 +301,7 @@ public class ServerNotificationTransport implements NotificationTransport
 
     private String fileToString(Path path) {
         try {
-            // Use convenience methods to read in the files as reports are not expected to be large
+            // Use convenience method to read in the files as reports are not expected to be large
             return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
         } catch (IOException e) {
             logErrorToBuildLog("Error reading in artifact file " + path.toString() + e.getMessage());
@@ -309,13 +309,13 @@ public class ServerNotificationTransport implements NotificationTransport
         }
     }
 
-    private JSONObject createArtifactJSONObject(Path path) {
+    private JSONObject createArtifactJSONObject(Path path, String label) {
         try {
             JSONObject artifactJSON = new JSONObject();
             File artifactFile = path.toFile();
-
+            artifactJSON.put("label", artifactFile.getName());
+            artifactJSON.put("filename", artifactFile.getName());
             artifactJSON.put("content", fileToString(path));
-            artifactJSON.put("name", artifactFile.getName());
             artifactJSON.put("path", path.toString());
             return artifactJSON;
         } catch (JSONException e) {
@@ -324,23 +324,32 @@ public class ServerNotificationTransport implements NotificationTransport
         }
     }
 
-    private JSONArray createFileSystemArtifactJSONArray(File rootFile) {
-        // Travers the file system starting at the rootFile and create a JSONObject for each regular file encountered
+    private Collection<JSONObject> createFileSystemArtifactJSONObjects(File rootFile, String label) {
+        /*
+         * The rootFile is a directory if the copy pattern matches multiple files, otherwise it is a regular file
+         * Travers the file system starting at the rootFile and create a JSONObject for each regular file encountered
+         */
         try (Stream<Path> paths = Files.walk(rootFile.toPath())) {
-                Collection<JSONObject> artifactsForCopyPattern = paths.filter(Files::isRegularFile)
-                        .map(this::createArtifactJSONObject).collect(Collectors.toList());
-                return new JSONArray(artifactsForCopyPattern);
+                return paths.filter(Files::isRegularFile)
+                        .map(path -> createArtifactJSONObject(path, label)).collect(Collectors.toList());
         } catch (IOException e) {
             log.error("Error occurred traversing file system for " + rootFile.getName(), e);
-            return new JSONArray();
+            return new ArrayList<JSONObject>(0);
         }
     }
 
-    private JSONObject createArtifactJSONObjectForJob(Collection<ArtifactLink> artifactLinks, long jobId) throws JSONException {
-        JSONObject jobArtifacts = new JSONObject();
-        // ArtifactLink is an interface referring to a single artifact configuration defined on job level
+    private JSONArray createArtifactArrayForJob(Collection<ArtifactLink> artifactLinks, long jobId) throws JSONException {
+        JSONArray jobArtifactsArray = new JSONArray();
+        Collection<JSONObject> artifactJSONObjects = new ArrayList<>();
+        // ArtifactLink refers to a single artifact configuration defined on job level
         for (ArtifactLink artifactLink: artifactLinks) {
             MutableArtifact artifact = artifactLink.getArtifact();
+
+            /*
+             * The interface ArtifactLinkDataProvider generalizes access to the resulting artifact files.
+             * Artifact handler configurations, which define how the results are stored, determine the concrete
+             * implementation of the interface.
+             */
             ArtifactLinkDataProvider dataProvider = artifactLinkManager.getArtifactLinkDataProvider(artifact);
 
             if (dataProvider == null) {
@@ -350,18 +359,12 @@ public class ServerNotificationTransport implements NotificationTransport
             }
 
             /*
-             *  Only handles artifact files stored on the server file system
-             *  Has to be extended for more advanced or customized artifact handling
+             * FileSystemArtifactLinkDataProvider provides access to artifacts stored on the local server.
+             * Has to be extended to support other artifact handling configurations.
              */
             if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
-                File rootFile = fileDataProvider.getFile();
-
-                /**
-                 * Each artifact definition specifies a location and copy pattern to determine which files to keep
-                 * The rootFile is a directory if the copy pattern matches multiple files, otherwise it is a regular file
-                 */
-                jobArtifacts.put(artifact.getLabel(), createFileSystemArtifactJSONArray(rootFile));
+                artifactJSONObjects.addAll(createFileSystemArtifactJSONObjects(fileDataProvider.getFile(), artifact.getLabel()));
             } else {
                 log.debug("Unsupported ArtifactLinkDataProvider " + dataProvider.getClass().getSimpleName()
                         + " encountered for label" + artifact.getLabel() + " in job " + jobId);
@@ -369,7 +372,8 @@ public class ServerNotificationTransport implements NotificationTransport
                         + artifact.getLabel() + " in job " + jobId);
             }
         }
-        return jobArtifacts;
+        artifactJSONObjects.stream().forEach(jobArtifactsArray::put);
+        return jobArtifactsArray;
     }
 
     private JSONObject createTestsResultsJSONObject(TestResults testResults, boolean addErrors) throws JSONException {
