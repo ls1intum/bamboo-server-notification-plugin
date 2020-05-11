@@ -276,7 +276,7 @@ public class ServerNotificationTransport implements NotificationTransport
                                 logErrorToBuildLog("Could not load cached test results!");
                             }
                             logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
-                            JSONArray artifacts = createArtifactArrayForJob(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
+                            JSONArray artifacts = createArtifactArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
                             hasArtifacts = hasArtifacts || artifacts.length() > 0;
                             jobDetails.put("artifacts", artifacts);
 
@@ -318,6 +318,8 @@ public class ServerNotificationTransport implements NotificationTransport
     }
 
     private Collection<JSONObject> createFileArtifactJSONObjects(File rootFile, String label) {
+        logToBuildLog("Creating artifact JSON objects for artifact definition: " + label);
+
         /*
          * The rootFile is a directory if the copy pattern matches multiple files, otherwise it is a regular file
          * Travers the file system starting at the rootFile and create a JSONObject for each regular file encountered
@@ -329,10 +331,10 @@ public class ServerNotificationTransport implements NotificationTransport
                 artifactJSONObjects.add(createArtifactJSONObject(path, label));
             }
             return artifactJSONObjects;
-        // Return JSON data for all files matching the artifact definition or for none
+        // Return JSONObjects for all files matching the artifact definition or for none
         } catch (IOException e) {
-            log.error("Error accessing file system for artifact definition " + label, e);
-            logErrorToBuildLog("Error accessing file system for artifact definition " + label + ": " + e.getMessage());
+            log.error("Error accessing the file system for artifact definition " + label, e);
+            logErrorToBuildLog("Error accessing the file system for artifact definition " + label + ": " + e.getMessage());
             return new ArrayList<>(0);
         } catch (JSONException e) {
             log.error("Error constructing artifact JSON for artifact definition " + label, e);
@@ -341,8 +343,8 @@ public class ServerNotificationTransport implements NotificationTransport
         }
     }
 
-    private JSONArray createArtifactArrayForJob(Collection<ArtifactLink> artifactLinks, long jobId) {
-        JSONArray jobArtifactsArray = new JSONArray();
+    private JSONArray createArtifactArray(Collection<ArtifactLink> artifactLinks, long jobId) {
+        JSONArray artifactsArray = new JSONArray();
         Collection<JSONObject> artifactJSONObjects = new ArrayList<>();
         // ArtifactLink refers to a single artifact definition configured on job level
         for (ArtifactLink artifactLink : artifactLinks) {
@@ -375,8 +377,8 @@ public class ServerNotificationTransport implements NotificationTransport
                         + artifact.getLabel() + " in job " + jobId);
             }
         }
-        artifactJSONObjects.stream().forEach(jobArtifactsArray::put);
-        return jobArtifactsArray;
+        artifactJSONObjects.stream().forEach(artifactsArray::put);
+        return artifactsArray;
     }
 
     private JSONObject createTestsResultsJSONObject(TestResults testResults, boolean addErrors) throws JSONException {
