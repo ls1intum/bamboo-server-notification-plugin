@@ -302,50 +302,50 @@ public class ServerNotificationTransport implements NotificationTransport
         return jsonObject;
     }
 
-    private String encodeFileWithBase64(Path path) {
-        try {
-            // Use convenience method to read in the files as reports are not expected to be large
-            return Base64.getEncoder().encodeToString(Files.readAllBytes(path));
-        } catch (IOException e) {
-            logErrorToBuildLog("Error reading in artifact file " + path.toString() + e.getMessage());
-            return null;
-        }
+    private String encodeFileWithBase64(Path path) throws IOException {
+        // Use convenience method to read in the file as reports are not expected to be large
+        return Base64.getEncoder().encodeToString(Files.readAllBytes(path));
     }
 
-    private JSONObject createArtifactJSONObject(Path path, String label) {
-        try {
-            JSONObject artifactJSON = new JSONObject();
-            File artifactFile = path.toFile();
-            artifactJSON.put("label", label);
-            artifactJSON.put("filename", artifactFile.getName());
-            artifactJSON.put("content", encodeFileWithBase64(path));
-            artifactJSON.put("encoding", "base64");
-            return artifactJSON;
-        } catch (JSONException e) {
-            log.error("JSON construction error for " + path.toString(), e);
-            return new JSONObject();
-        }
+    private JSONObject createArtifactJSONObject(Path path, String label) throws IOException, JSONException {
+        JSONObject artifactJSON = new JSONObject();
+        File artifactFile = path.toFile();
+        artifactJSON.put("label", label);
+        artifactJSON.put("filename", artifactFile.getName());
+        artifactJSON.put("content", encodeFileWithBase64(path));
+        artifactJSON.put("encoding", "base64");
+        return artifactJSON;
     }
 
-    private Collection<JSONObject> createFileSystemArtifactJSONObjects(File rootFile, String label) {
+    private Collection<JSONObject> createFileArtifactJSONObjects(File rootFile, String label) {
         /*
          * The rootFile is a directory if the copy pattern matches multiple files, otherwise it is a regular file
          * Travers the file system starting at the rootFile and create a JSONObject for each regular file encountered
          */
         try (Stream<Path> paths = Files.walk(rootFile.toPath())) {
-                return paths.filter(Files::isRegularFile)
-                        .map(path -> createArtifactJSONObject(path, label)).collect(Collectors.toList());
+            Collection<JSONObject> artifactJSONObjects = new ArrayList<>();
+            Collection<Path> filePaths = paths.filter(Files::isRegularFile).collect(Collectors.toList());
+            for (Path path : filePaths) {
+                artifactJSONObjects.add(createArtifactJSONObject(path, label));
+            }
+            return artifactJSONObjects;
+        // Return JSON data for all files matching the artifact definition or for none
         } catch (IOException e) {
-            log.error("Error occurred traversing file system for " + rootFile.getName(), e);
-            return new ArrayList<JSONObject>(0);
+            log.error("Error accessing file system for artifact definition " + label, e);
+            logErrorToBuildLog("Error accessing file system for artifact definition " + label + ": " + e.getMessage());
+            return new ArrayList<>(0);
+        } catch (JSONException e) {
+            log.error("Error constructing artifact JSON for artifact definition " + label, e);
+            logErrorToBuildLog("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage());
+            return new ArrayList<>();
         }
     }
 
-    private JSONArray createArtifactArrayForJob(Collection<ArtifactLink> artifactLinks, long jobId) throws JSONException {
+    private JSONArray createArtifactArrayForJob(Collection<ArtifactLink> artifactLinks, long jobId) {
         JSONArray jobArtifactsArray = new JSONArray();
         Collection<JSONObject> artifactJSONObjects = new ArrayList<>();
-        // ArtifactLink refers to a single artifact configuration defined on job level
-        for (ArtifactLink artifactLink: artifactLinks) {
+        // ArtifactLink refers to a single artifact definition configured on job level
+        for (ArtifactLink artifactLink : artifactLinks) {
             MutableArtifact artifact = artifactLink.getArtifact();
 
             /*
@@ -367,7 +367,7 @@ public class ServerNotificationTransport implements NotificationTransport
              */
             if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
-                artifactJSONObjects.addAll(createFileSystemArtifactJSONObjects(fileDataProvider.getFile(), artifact.getLabel()));
+                artifactJSONObjects.addAll(createFileArtifactJSONObjects(fileDataProvider.getFile(), artifact.getLabel()));
             } else {
                 log.debug("Unsupported ArtifactLinkDataProvider " + dataProvider.getClass().getSimpleName()
                         + " encountered for label" + artifact.getLabel() + " in job " + jobId);
