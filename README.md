@@ -30,7 +30,7 @@ Compiling from source
 
 You first need to [Set up the Atlassian Plugin SDK](https://developer.atlassian.com/docs/getting-started/set-up-the-atlassian-plugin-sdk-and-build-a-project). Or you could just do a `brew tap atlassian/tap; brew install atlassian/tap/atlassian-plugin-sdk` on a mac is you use HomeBrew... At the project top level (where the pom.xml is) :
 
-1.	Compile : `atlas-mvn compile`
+1.	Compile : `atlas-compile`
 2.	Run : `atlas-run`
 3.	Debug : `atlas-debug`
 
@@ -163,6 +163,14 @@ Sample request
                   "name":"testClass[MergeSort]",
                   "methodName":"Class[merge sort]",
                   "className":"de.de.ClassTest"
+               }
+            ],
+            "artifacts":[
+               {
+                  "label":"spotbugs",
+                  "filename":"spotbugs.xml",
+                  "content":"PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPEJ1Z0NvbGxlY3R...",
+                  "encoding":"base64"
                }
             ],
             "id":14581874

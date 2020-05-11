@@ -144,6 +144,7 @@ public class ServerNotificationTransport implements NotificationTransport
                 log.debug(method.getURI().toString());
                 log.debug(method.getEntity().toString());
                 CloseableHttpResponse closeableHttpResponse = client.execute(method);
+
                 logToBuildLog("Call executed");
                 if (closeableHttpResponse != null) {
                     logToBuildLog("Response is not null: " + closeableHttpResponse.toString());
