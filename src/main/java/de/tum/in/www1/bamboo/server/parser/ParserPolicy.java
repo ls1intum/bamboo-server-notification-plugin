@@ -10,9 +10,11 @@ public class ParserPolicy {
         this.parser = parser;
     }
 
-    public void configure(String tool) {
+    public void configure(String tool) throws ParserException {
         if (Tool.SPOTBUGS.name().equalsIgnoreCase(tool)) {
             parser.setParserStrategy(new SpotbugsParser());
+        } else {
+            throw new ParserException("Report parsing for tool" + tool + "is not supported");
         }
     }
 }

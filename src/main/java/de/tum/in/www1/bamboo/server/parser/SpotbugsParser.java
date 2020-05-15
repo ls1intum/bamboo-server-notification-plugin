@@ -12,28 +12,34 @@ import java.util.List;
 
 public class SpotbugsParser implements ParserStrategy {
 
+    private static final String FILE_TAG = "file";
+    private static final String FILE_ATT_CLASSNAME = "classname";
+    private static final String BUGINSTANCE_ATT_TYPE = "type";
+    private static final String BUGINSTANCE_ATT_PRIORITY = "priority";
+    private static final String BUGINSTANCE_ATT_CATEGORY = "category";
+    private static final String BUGINSTANCE_ATT_MESSAGE = "message";
+    private static final String BUGINSTANCE_ATT_LINENUMBER = "lineNumber";
+
     public Report parse(Document doc, String tool) {
         Report report = new Report(tool);
-        report.setThreshold(doc.getDocumentElement().getAttribute("threshold"));
-        report.setEffort(doc.getDocumentElement().getAttribute("effort"));
-
         List<Finding> findings = new ArrayList<>();
-        NodeList fileNodes = doc.getElementsByTagName("file");
+        NodeList fileNodes = doc.getElementsByTagName(FILE_TAG);
+
         for (int i = 0; i < fileNodes.getLength(); i++) {
             Node fileNode = fileNodes.item(i);
             NamedNodeMap fileAttributes = fileNode.getAttributes();
-            String classname = fileAttributes.getNamedItem("classname").getNodeValue();
+            String classname = fileAttributes.getNamedItem(FILE_ATT_CLASSNAME).getNodeValue();
             NodeList bugInstances = fileNode.getChildNodes();
 
             for (int j = 0; j < bugInstances.getLength(); j++) {
                 Node bugInstance = bugInstances.item(j);
-                NamedNodeMap bugInstanceAttributes = fileNode.getAttributes();
-                String type = fileAttributes.getNamedItem("classname").getNodeValue();
-                String priority = fileAttributes.getNamedItem("priority").getNodeValue();
-                String category = fileAttributes.getNamedItem("category").getNodeValue();
-                String message = fileAttributes.getNamedItem("message").getNodeValue();
-                Integer line = Integer.valueOf(fileAttributes.getNamedItem("line").getNodeValue());
-                findings.add(new Finding(type, priority, category, message, line));
+                NamedNodeMap bugInstanceAttributes = bugInstance.getAttributes();
+                String type = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_TYPE).getNodeValue();
+                String priority = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_PRIORITY).getNodeValue();
+                String category = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_CATEGORY).getNodeValue();
+                String message = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_MESSAGE).getNodeValue();
+                Integer line = Integer.parseInt(bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_LINENUMBER).getNodeValue());
+                findings.add(new Finding(classname, type, priority, category, message, line));
             }
         }
         report.setFindings(findings);

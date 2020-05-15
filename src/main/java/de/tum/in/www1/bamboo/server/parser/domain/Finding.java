@@ -2,6 +2,8 @@ package de.tum.in.www1.bamboo.server.parser.domain;
 
 public class Finding {
 
+    private String classname;
+
     private String type;
 
     private String priority;
@@ -10,14 +12,23 @@ public class Finding {
 
     private String message;
 
-    private int line;
+    private Integer line;
 
-    public Finding(String type, String priority, String category, String message, int line) {
+    public Finding(String classname, String type, String priority, String category, String message, Integer line) {
+        this.classname = classname;
         this.type = type;
         this.priority = priority;
         this.category = category;
         this.message = message;
         this.line = line;
+    }
+
+    public String getClassname() {
+        return classname;
+    }
+
+    public void setClassname(String classname) {
+        this.classname = classname;
     }
 
     public String getType() {
@@ -52,11 +63,11 @@ public class Finding {
         this.message = message;
     }
 
-    public int getLine() {
+    public Integer getLine() {
         return line;
     }
 
-    public void setLine(int line) {
+    public void setLine(Integer line) {
         this.line = line;
     }
 }

@@ -6,6 +6,6 @@ import org.w3c.dom.Document;
 
 public interface ParserStrategy {
 
-    public Report parse(Document doc, String tool);
+    Report parse(Document doc, String tool);
 
 }
