@@ -25,6 +25,8 @@ import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
+import de.tum.in.www1.bamboo.server.parser.ParserException;
+import de.tum.in.www1.bamboo.server.parser.ReportParser;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
@@ -57,6 +59,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,6 +70,8 @@ public class ServerNotificationTransport implements NotificationTransport
     private final String webhookUrl;
 
     private CloseableHttpClient client;
+
+    private ReportParser reportParser;
 
     @Nullable
     private final ImmutablePlan plan;
@@ -96,6 +101,7 @@ public class ServerNotificationTransport implements NotificationTransport
         this.resultsSummary = resultsSummary;
         this.deploymentResult = deploymentResult;
         this.buildLoggerManager = buildLoggerManager;
+        this.reportParser = new ReportParser();
 
         URI uri;
         try
@@ -302,45 +308,27 @@ public class ServerNotificationTransport implements NotificationTransport
         return jsonObject;
     }
 
-    private String encodeFileWithBase64(Path path) throws IOException {
-        // Use convenience method to read in the file as reports are not expected to be large
-        return Base64.getEncoder().encodeToString(Files.readAllBytes(path));
-    }
-
-    private JSONObject createArtifactJSONObject(Path path, String label) throws IOException, JSONException {
-        JSONObject artifactJSON = new JSONObject();
-        File artifactFile = path.toFile();
-        artifactJSON.put("label", label);
-        artifactJSON.put("filename", artifactFile.getName());
-        artifactJSON.put("content", encodeFileWithBase64(path));
-        artifactJSON.put("encoding", "base64");
-        return artifactJSON;
-    }
-
-    private Collection<JSONObject> createFileArtifactJSONObjects(File rootFile, String label) {
-        logToBuildLog("Creating artifact JSON objects for artifact definition: " + label);
-
+    private Optional<JSONObject> createFileArtifactJSONObject(File rootFile, String label) {
         /*
-         * The rootFile is a directory if the copy pattern matches multiple files, otherwise it is a regular file
-         * Travers the file system starting at the rootFile and create a JSONObject for each regular file encountered
+         * The rootFile is a directory if the copy pattern matches multiple files, otherwise it is a regular file.
+         * Ignore artifact definitions matching multiple files.
          */
-        try (Stream<Path> paths = Files.walk(rootFile.toPath())) {
-            Collection<JSONObject> artifactJSONObjects = new ArrayList<>();
-            Collection<Path> filePaths = paths.filter(Files::isRegularFile).collect(Collectors.toList());
-            for (Path path : filePaths) {
-                artifactJSONObjects.add(createArtifactJSONObject(path, label));
-            }
-            return artifactJSONObjects;
-        // Return JSONObjects for all files matching the artifact definition or for none
-        } catch (IOException e) {
-            log.error("Error accessing the file system for artifact definition " + label, e);
-            logErrorToBuildLog("Error accessing the file system for artifact definition " + label + ": " + e.getMessage());
-            return new ArrayList<>(0);
+        if (rootFile == null || rootFile.isDirectory()) {
+            return Optional.empty();
+        }
+
+        try {
+            logToBuildLog("Creating artifact JSON object for artifact definition: " + label);
+            String reportJSON = reportParser.transformToJSONReport(rootFile, label);
+            return Optional.ofNullable(new JSONObject(reportJSON));
         } catch (JSONException e) {
             log.error("Error constructing artifact JSON for artifact definition " + label, e);
             logErrorToBuildLog("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage());
-            return new ArrayList<>();
+        } catch (ParserException e) {
+            log.error("Error parsing static code analysis report " + label, e);
+            logErrorToBuildLog("Error parsing static code analysis report " + label + ": " + e.getMessage());
         }
+        return Optional.empty();
     }
 
     private JSONArray createArtifactArray(Collection<ArtifactLink> artifactLinks, long jobId) {
@@ -369,7 +357,10 @@ public class ServerNotificationTransport implements NotificationTransport
              */
             if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
-                artifactJSONObjects.addAll(createFileArtifactJSONObjects(fileDataProvider.getFile(), artifact.getLabel()));
+                Optional<JSONObject> optionalReport = createFileArtifactJSONObject(fileDataProvider.getFile(), artifact.getLabel());
+                if (optionalReport.isPresent()) {
+                    artifactJSONObjects.add(optionalReport.get());
+                }
             } else {
                 log.debug("Unsupported ArtifactLinkDataProvider " + dataProvider.getClass().getSimpleName()
                         + " encountered for label" + artifact.getLabel() + " in job " + jobId);
