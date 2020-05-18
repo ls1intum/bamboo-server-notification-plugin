@@ -6,7 +6,7 @@ public class Report {
 
     private String tool;
 
-    List<Finding> findings;
+    private List<Finding> findings;
 
     public Report(String tool) {
         this.tool = tool;;

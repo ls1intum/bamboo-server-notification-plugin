@@ -25,7 +25,7 @@ import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
-import de.tum.in.www1.bamboo.server.parser.ParserException;
+import de.tum.in.www1.bamboo.server.parser.exception.ParserException;
 import de.tum.in.www1.bamboo.server.parser.ReportParser;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -47,21 +47,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ServerNotificationTransport implements NotificationTransport
 {
@@ -313,6 +306,7 @@ public class ServerNotificationTransport implements NotificationTransport
          * The rootFile is a directory if the copy pattern matches multiple files, otherwise it is a regular file.
          * Ignore artifact definitions matching multiple files.
          */
+        // TODO: Support artifact definitions matching multiple files
         if (rootFile == null || rootFile.isDirectory()) {
             return Optional.empty();
         }
@@ -357,6 +351,7 @@ public class ServerNotificationTransport implements NotificationTransport
              */
             if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
+                // TODO: Identify report in a more generic way
                 Optional<JSONObject> optionalReport = createFileArtifactJSONObject(fileDataProvider.getFile(), artifact.getLabel());
                 if (optionalReport.isPresent()) {
                     artifactJSONObjects.add(optionalReport.get());

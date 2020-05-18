@@ -1,4 +1,4 @@
-package de.tum.in.www1.bamboo.server.parser;
+package de.tum.in.www1.bamboo.server.parser.strategy;
 
 import de.tum.in.www1.bamboo.server.parser.domain.Finding;
 import de.tum.in.www1.bamboo.server.parser.domain.Report;
@@ -10,6 +10,7 @@ import org.w3c.dom.Node;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO: Use XOM, JDOM, DOM4J instead of DOM (for Collection support)
 public class SpotbugsParser implements ParserStrategy {
 
     private static final String FILE_TAG = "file";
@@ -20,6 +21,7 @@ public class SpotbugsParser implements ParserStrategy {
     private static final String BUGINSTANCE_ATT_MESSAGE = "message";
     private static final String BUGINSTANCE_ATT_LINENUMBER = "lineNumber";
 
+    @Override
     public Report parse(Document doc, String tool) {
         Report report = new Report(tool);
         List<Finding> findings = new ArrayList<>();
