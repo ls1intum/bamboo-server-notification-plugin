@@ -45,7 +45,7 @@ Sample request
 ```json
 {
    "build":{
-      "artifact":false,
+      "artifact":true,
       "number":86,
       "reason":"Manual build",
       "buildCompletedDate":"2019-05-05T09:51:30.960Z[Zulu]",
@@ -167,10 +167,17 @@ Sample request
             ],
             "artifacts":[
                {
-                  "label":"spotbugs",
-                  "filename":"spotbugs.xml",
-                  "content":"PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPEJ1Z0NvbGxlY3R...",
-                  "encoding":"base64"
+                  "tool":"spotbugs",
+                  "findings":[
+                     {
+                         "classname":"com.stefan.staticCodeAnalysis.App",
+                         "type":"ES_COMPARING_PARAMETER_STRING_WITH_EQ",
+                         "priority":"High",
+                         "category":"BAD_PRACTICE",
+                         "message":"Comparison of String parameter using == or != in com.stefan.staticCodeAnalysis.App.equalString(String)",
+                         "line":16
+                     }
+                  ]
                }
             ],
             "id":14581874
