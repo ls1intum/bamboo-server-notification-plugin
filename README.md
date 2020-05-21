@@ -165,7 +165,7 @@ Sample request
                   "className":"de.de.ClassTest"
                }
             ],
-            "artifacts":[
+            "staticAssessment":[
                {
                   "tool":"spotbugs",
                   "findings":[
