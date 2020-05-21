@@ -275,9 +275,9 @@ public class ServerNotificationTransport implements NotificationTransport
                                 logErrorToBuildLog("Could not load cached test results!");
                             }
                             logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
-                            JSONArray staticAssessmentArray = createStaticAssessmentArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
-                            hasArtifacts = hasArtifacts || staticAssessmentArray.length() > 0;
-                            jobDetails.put("staticAssessment", staticAssessmentArray);
+                            JSONArray staticAssessmentReports = createStaticAssessmentReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
+                            hasArtifacts = hasArtifacts || staticAssessmentReports.length() > 0;
+                            jobDetails.put("staticAssessmentReports", staticAssessmentReports);
 
                             jobs.put(jobDetails);
                         }
@@ -325,7 +325,7 @@ public class ServerNotificationTransport implements NotificationTransport
         return Optional.empty();
     }
 
-    private JSONArray createStaticAssessmentArray(Collection<ArtifactLink> artifactLinks, long jobId) {
+    private JSONArray createStaticAssessmentReportArray(Collection<ArtifactLink> artifactLinks, long jobId) {
         JSONArray artifactsArray = new JSONArray();
         Collection<JSONObject> artifactJSONObjects = new ArrayList<>();
         // ArtifactLink refers to a single artifact definition configured on job level
