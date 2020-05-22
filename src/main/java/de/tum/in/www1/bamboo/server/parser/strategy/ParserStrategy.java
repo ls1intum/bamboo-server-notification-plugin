@@ -10,9 +10,8 @@ public interface ParserStrategy {
      * Parse a static code analysis report into a common Java representation.
      *
      * @param doc W3C DOM Document
-     * @param tool String identifying the tool
      * @return Report object containing the parsed report information
      */
-    Report parse(Document doc, String tool);
+    Report parse(Document doc);
 
 }

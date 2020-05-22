@@ -167,7 +167,7 @@ Sample request
             ],
             "staticAssessmentReports":[
                {
-                  "tool":"spotbugs",
+                  "tool":"SPOTBUGS",
                   "issues":[
                      {
                          "classname":"com.stefan.staticCodeAnalysis.App",

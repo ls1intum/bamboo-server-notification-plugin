@@ -2,6 +2,7 @@ package de.tum.in.www1.bamboo.server.parser.strategy;
 
 import de.tum.in.www1.bamboo.server.parser.domain.Issue;
 import de.tum.in.www1.bamboo.server.parser.domain.Report;
+import de.tum.in.www1.bamboo.server.parser.domain.StaticAssessmentTool;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -22,8 +23,8 @@ public class SpotbugsParser implements ParserStrategy {
     private static final String BUGINSTANCE_ATT_LINENUMBER = "lineNumber";
 
     @Override
-    public Report parse(Document doc, String tool) {
-        Report report = new Report(tool);
+    public Report parse(Document doc) {
+        Report report = new Report(StaticAssessmentTool.SPOTBUGS);
         List<Issue> issues = new ArrayList<>();
         NodeList fileNodes = doc.getElementsByTagName(FILE_TAG);
 

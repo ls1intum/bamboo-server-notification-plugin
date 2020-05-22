@@ -1,7 +1,7 @@
 package de.tum.in.www1.bamboo.server.parser.strategy;
 
 import de.tum.in.www1.bamboo.server.parser.ReportParser;
-import de.tum.in.www1.bamboo.server.parser.domain.Tool;
+import de.tum.in.www1.bamboo.server.parser.domain.StaticAssessmentTool;
 import de.tum.in.www1.bamboo.server.parser.exception.UnsupportedToolException;
 
 public class ParserPolicy {
@@ -20,7 +20,7 @@ public class ParserPolicy {
      */
     public void configure(String tool) throws UnsupportedToolException {
         // TODO: Inspect the document (identifying unique nodes) to select the appropriate strategy
-        if (Tool.SPOTBUGS.name().equalsIgnoreCase(tool)) {
+        if (StaticAssessmentTool.SPOTBUGS.name().equalsIgnoreCase(tool)) {
             parser.setParserStrategy(new SpotbugsParser());
         } else {
             throw new UnsupportedToolException("Report parsing for tool" + tool + "is not supported");

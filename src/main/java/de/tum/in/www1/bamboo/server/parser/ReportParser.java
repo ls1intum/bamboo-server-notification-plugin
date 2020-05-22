@@ -50,7 +50,7 @@ public class ReportParser {
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = builderFactory.newDocumentBuilder();
         Document doc = db.parse(file);
-        return parserStrategy.parse(doc, tool);
+        return parserStrategy.parse(doc);
     }
 
     public void setParserStrategy(ParserStrategy parserStrategy) {
