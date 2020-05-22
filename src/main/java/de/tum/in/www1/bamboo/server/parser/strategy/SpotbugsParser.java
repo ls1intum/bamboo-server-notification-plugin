@@ -1,6 +1,6 @@
 package de.tum.in.www1.bamboo.server.parser.strategy;
 
-import de.tum.in.www1.bamboo.server.parser.domain.Finding;
+import de.tum.in.www1.bamboo.server.parser.domain.Issue;
 import de.tum.in.www1.bamboo.server.parser.domain.Report;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -24,7 +24,7 @@ public class SpotbugsParser implements ParserStrategy {
     @Override
     public Report parse(Document doc, String tool) {
         Report report = new Report(tool);
-        List<Finding> findings = new ArrayList<>();
+        List<Issue> issues = new ArrayList<>();
         NodeList fileNodes = doc.getElementsByTagName(FILE_TAG);
 
         for (int i = 0; i < fileNodes.getLength(); i++) {
@@ -41,10 +41,10 @@ public class SpotbugsParser implements ParserStrategy {
                 String category = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_CATEGORY).getNodeValue();
                 String message = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_MESSAGE).getNodeValue();
                 Integer line = Integer.parseInt(bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_LINENUMBER).getNodeValue());
-                findings.add(new Finding(classname, type, priority, category, message, line));
+                issues.add(new Issue(classname, type, priority, category, message, line));
             }
         }
-        report.setFindings(findings);
+        report.setIssues(issues);
         return report;
     }
 

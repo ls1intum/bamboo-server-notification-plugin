@@ -1,6 +1,6 @@
 package de.tum.in.www1.bamboo.server.parser.domain;
 
-public class Finding {
+public class Issue {
 
     private String classname;
 
@@ -14,7 +14,7 @@ public class Finding {
 
     private Integer line;
 
-    public Finding(String classname, String type, String priority, String category, String message, Integer line) {
+    public Issue(String classname, String type, String priority, String category, String message, Integer line) {
         this.classname = classname;
         this.type = type;
         this.priority = priority;

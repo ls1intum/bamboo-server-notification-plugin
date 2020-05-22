@@ -6,7 +6,7 @@ public class Report {
 
     private String tool;
 
-    private List<Finding> findings;
+    private List<Issue> issues;
 
     public Report(String tool) {
         this.tool = tool;;
@@ -20,11 +20,11 @@ public class Report {
         this.tool = tool;
     }
 
-    public List<Finding> getFindings() {
-        return findings;
+    public List<Issue> getIssues() {
+        return issues;
     }
 
-    public void setFindings(List<Finding> findings) {
-        this.findings = findings;
+    public void setIssues(List<Issue> issues) {
+        this.issues = issues;
     }
 }

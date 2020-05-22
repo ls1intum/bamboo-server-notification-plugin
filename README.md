@@ -168,7 +168,7 @@ Sample request
             "staticAssessmentReports":[
                {
                   "tool":"spotbugs",
-                  "findings":[
+                  "issues":[
                      {
                          "classname":"com.stefan.staticCodeAnalysis.App",
                          "type":"ES_COMPARING_PARAMETER_STRING_WITH_EQ",
