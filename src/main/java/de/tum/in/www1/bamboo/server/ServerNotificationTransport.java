@@ -77,7 +77,7 @@ public class ServerNotificationTransport implements NotificationTransport
 
     // Will be injected by Bamboo
     private VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager");
-    private ArtifactLinkManager artifactLinkManager = (ArtifactLinkManager) ContainerManager.getComponent("artifactLinkManager");;
+    private ArtifactLinkManager artifactLinkManager = (ArtifactLinkManager) ContainerManager.getComponent("artifactLinkManager");
 
     // Maximum length for the feedback text. The feedback will be truncated afterwards
     private static int FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS = 5000;
