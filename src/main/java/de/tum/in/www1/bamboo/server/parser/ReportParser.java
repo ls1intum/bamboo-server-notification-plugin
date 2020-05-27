@@ -21,6 +21,10 @@ public class ReportParser {
     ParserStrategy parserStrategy;
     ParserPolicy parserPolicy = new ParserPolicy(this);
 
+    public void setParserStrategy(ParserStrategy parserStrategy) {
+        this.parserStrategy = parserStrategy;
+    }
+
     /**
      * Transform a given static code analysis report into a JSON representation.
      * All supported tools share the same JSON format.
@@ -51,9 +55,5 @@ public class ReportParser {
         DocumentBuilder db = builderFactory.newDocumentBuilder();
         Document doc = db.parse(file);
         return parserStrategy.parse(doc);
-    }
-
-    public void setParserStrategy(ParserStrategy parserStrategy) {
-        this.parserStrategy = parserStrategy;
     }
 }
