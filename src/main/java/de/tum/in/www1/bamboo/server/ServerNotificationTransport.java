@@ -212,7 +212,7 @@ public class ServerNotificationTransport implements NotificationTransport
                 buildDetails.put("successful", resultsSummary.isSuccessful());
                 buildDetails.put("buildCompletedDate", ZonedDateTime.ofInstant(resultsSummary.getBuildCompletedDate().toInstant(), ZoneId.systemDefault()));
 
-                // As ResultsSummary only contains shared artifacts. Job level artifacts are not available here
+                // ResultsSummary only contains shared artifacts. Job level artifacts are not available here
                 buildDetails.put("artifact", !resultsSummary.getArtifactLinks().isEmpty());
 
                 TestResultsSummary testResultsSummary = resultsSummary.getTestResultsSummary();
