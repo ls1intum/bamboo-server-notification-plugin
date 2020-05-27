@@ -50,6 +50,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -206,11 +207,13 @@ public class ServerNotificationTransport implements NotificationTransport
 
             if (resultsSummary != null) {
                 JSONObject buildDetails = new JSONObject();
-                boolean hasArtifacts = false;
                 buildDetails.put("number", resultsSummary.getBuildNumber());
                 buildDetails.put("reason", resultsSummary.getShortReasonSummary());
                 buildDetails.put("successful", resultsSummary.isSuccessful());
                 buildDetails.put("buildCompletedDate", ZonedDateTime.ofInstant(resultsSummary.getBuildCompletedDate().toInstant(), ZoneId.systemDefault()));
+
+                // As ResultsSummary only contains shared artifacts. Job level artifacts are not available here
+                buildDetails.put("artifact", !resultsSummary.getArtifactLinks().isEmpty());
 
                 TestResultsSummary testResultsSummary = resultsSummary.getTestResultsSummary();
                 JSONObject testResultOverview = new JSONObject();
@@ -276,7 +279,6 @@ public class ServerNotificationTransport implements NotificationTransport
                             }
                             logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
                             JSONArray staticAssessmentReports = createStaticAssessmentReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
-                            hasArtifacts = hasArtifacts || staticAssessmentReports.length() > 0;
                             jobDetails.put("staticAssessmentReports", staticAssessmentReports);
 
                             jobs.put(jobDetails);
@@ -287,7 +289,6 @@ public class ServerNotificationTransport implements NotificationTransport
                     // TODO: This ensures outdated versions of Artemis can still process the new request. Will be removed without further notice in the future
                     buildDetails.put("failedJobs", jobs);
                 }
-                buildDetails.put("artifact", hasArtifacts);
                 jsonObject.put("build", buildDetails);
             }
 
