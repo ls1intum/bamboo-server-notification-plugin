@@ -45,7 +45,7 @@ Sample request
 ```json
 {
    "build":{
-      "artifact":true,
+      "artifact":false,
       "number":86,
       "reason":"Manual build",
       "buildCompletedDate":"2019-05-05T09:51:30.960Z[Zulu]",
