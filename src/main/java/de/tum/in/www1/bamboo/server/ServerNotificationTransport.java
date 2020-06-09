@@ -1,6 +1,11 @@
 package de.tum.in.www1.bamboo.server;
 
+import com.atlassian.bamboo.artifact.MutableArtifact;
 import com.atlassian.bamboo.build.BuildLoggerManager;
+import com.atlassian.bamboo.build.artifact.ArtifactLink;
+import com.atlassian.bamboo.build.artifact.ArtifactLinkDataProvider;
+import com.atlassian.bamboo.build.artifact.ArtifactLinkManager;
+import com.atlassian.bamboo.build.artifact.FileSystemArtifactLinkDataProvider;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.chains.ChainResultsSummary;
 import com.atlassian.bamboo.chains.ChainStageResult;
@@ -20,6 +25,8 @@ import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
+import de.tum.in.www1.bamboo.server.parser.exception.ParserException;
+import de.tum.in.www1.bamboo.server.parser.ReportParser;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
@@ -39,12 +46,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 
 public class ServerNotificationTransport implements NotificationTransport
 {
@@ -53,6 +64,8 @@ public class ServerNotificationTransport implements NotificationTransport
     private final String webhookUrl;
 
     private CloseableHttpClient client;
+
+    private ReportParser reportParser;
 
     @Nullable
     private final ImmutablePlan plan;
@@ -63,7 +76,9 @@ public class ServerNotificationTransport implements NotificationTransport
     @Nullable
     private final BuildLoggerManager buildLoggerManager;
 
-    private VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager"); // Will be injected by Bamboo
+    // Will be injected by Bamboo
+    private VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager");
+    private ArtifactLinkManager artifactLinkManager = (ArtifactLinkManager) ContainerManager.getComponent("artifactLinkManager");
 
     // Maximum length for the feedback text. The feedback will be truncated afterwards
     private static int FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS = 5000;
@@ -80,6 +95,7 @@ public class ServerNotificationTransport implements NotificationTransport
         this.resultsSummary = resultsSummary;
         this.deploymentResult = deploymentResult;
         this.buildLoggerManager = buildLoggerManager;
+        this.reportParser = new ReportParser();
 
         URI uri;
         try
@@ -128,6 +144,7 @@ public class ServerNotificationTransport implements NotificationTransport
                 log.debug(method.getURI().toString());
                 log.debug(method.getEntity().toString());
                 CloseableHttpResponse closeableHttpResponse = client.execute(method);
+
                 logToBuildLog("Call executed");
                 if (closeableHttpResponse != null) {
                     logToBuildLog("Response is not null: " + closeableHttpResponse.toString());
@@ -194,6 +211,8 @@ public class ServerNotificationTransport implements NotificationTransport
                 buildDetails.put("reason", resultsSummary.getShortReasonSummary());
                 buildDetails.put("successful", resultsSummary.isSuccessful());
                 buildDetails.put("buildCompletedDate", ZonedDateTime.ofInstant(resultsSummary.getBuildCompletedDate().toInstant(), ZoneId.systemDefault()));
+
+                // ResultsSummary only contains shared artifacts. Job level artifacts are not available here
                 buildDetails.put("artifact", !resultsSummary.getArtifactLinks().isEmpty());
 
                 TestResultsSummary testResultsSummary = resultsSummary.getTestResultsSummary();
@@ -211,7 +230,6 @@ public class ServerNotificationTransport implements NotificationTransport
                 testResultOverview.put("duration", testResultsSummary.getTotalTestDuration());
 
                 buildDetails.put("testSummary", testResultOverview);
-
 
                 JSONArray vcsDetails = new JSONArray();
                 for (RepositoryChangeset changeset : resultsSummary.getRepositoryChangesets()) {
@@ -244,7 +262,7 @@ public class ServerNotificationTransport implements NotificationTransport
 
                             jobDetails.put("id", buildResultsSummary.getId());
 
-                            logToBuildLog("Loading cached test results");
+                            logToBuildLog("Loading cached test results for job " + buildResultsSummary.getId());
                             TestResultsContainer testResultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
                             if (testResultsContainer != null) {
                                 logToBuildLog("Tests results found");
@@ -259,6 +277,10 @@ public class ServerNotificationTransport implements NotificationTransport
                             } else {
                                 logErrorToBuildLog("Could not load cached test results!");
                             }
+                            logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
+                            JSONArray staticAssessmentReports = createStaticAssessmentReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
+                            jobDetails.put("staticAssessmentReports", staticAssessmentReports);
+
                             jobs.put(jobDetails);
                         }
                     }
@@ -267,7 +289,6 @@ public class ServerNotificationTransport implements NotificationTransport
                     // TODO: This ensures outdated versions of Artemis can still process the new request. Will be removed without further notice in the future
                     buildDetails.put("failedJobs", jobs);
                 }
-
                 jsonObject.put("build", buildDetails);
             }
 
@@ -279,6 +300,72 @@ public class ServerNotificationTransport implements NotificationTransport
 
         logToBuildLog("JSON object created");
         return jsonObject;
+    }
+
+    private Optional<JSONObject> createStaticAssessmentJSONObject(File rootFile, String label) {
+        /*
+         * The rootFile is a directory if the copy pattern matches multiple files, otherwise it is a regular file.
+         * Ignore artifact definitions matching multiple files.
+         */
+        // TODO: Support artifact definitions matching multiple files
+        if (rootFile == null || rootFile.isDirectory()) {
+            return Optional.empty();
+        }
+
+        try {
+            logToBuildLog("Creating artifact JSON object for artifact definition: " + label);
+            String reportJSON = reportParser.transformToJSONReport(rootFile, label);
+            return Optional.ofNullable(new JSONObject(reportJSON));
+        } catch (JSONException e) {
+            log.error("Error constructing artifact JSON for artifact definition " + label, e);
+            logErrorToBuildLog("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage());
+        } catch (ParserException e) {
+            log.error("Error parsing static code analysis report " + label, e);
+            logErrorToBuildLog("Error parsing static code analysis report " + label + ": " + e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    private JSONArray createStaticAssessmentReportArray(Collection<ArtifactLink> artifactLinks, long jobId) {
+        JSONArray artifactsArray = new JSONArray();
+        Collection<JSONObject> artifactJSONObjects = new ArrayList<>();
+        // ArtifactLink refers to a single artifact definition configured on job level
+        for (ArtifactLink artifactLink : artifactLinks) {
+            MutableArtifact artifact = artifactLink.getArtifact();
+
+            /*
+             * The interface ArtifactLinkDataProvider generalizes access to the resulting artifact files.
+             * Artifact handler configurations, which define how the results are stored, determine the concrete
+             * implementation of the interface.
+             */
+            ArtifactLinkDataProvider dataProvider = artifactLinkManager.getArtifactLinkDataProvider(artifact);
+
+            if (dataProvider == null) {
+                log.debug("ArtifactLinkDataProvider is null for " + artifact.getLabel() + " in job " + jobId);
+                logToBuildLog("Could not retrieve data for artifact " + artifact.getLabel() + " in job " + jobId);
+                continue;
+            }
+
+            /*
+             * FileSystemArtifactLinkDataProvider provides access to artifacts stored on the local server.
+             * Has to be extended to support other artifact handling configurations.
+             */
+            if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
+                FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
+                // TODO: Identify report in a more generic way
+                Optional<JSONObject> optionalReport = createStaticAssessmentJSONObject(fileDataProvider.getFile(), artifact.getLabel());
+                if (optionalReport.isPresent()) {
+                    artifactJSONObjects.add(optionalReport.get());
+                }
+            } else {
+                log.debug("Unsupported ArtifactLinkDataProvider " + dataProvider.getClass().getSimpleName()
+                        + " encountered for label" + artifact.getLabel() + " in job " + jobId);
+                logToBuildLog("Unsupported artifact handler configuration encountered for artifact "
+                        + artifact.getLabel() + " in job " + jobId);
+            }
+        }
+        artifactJSONObjects.stream().forEach(artifactsArray::put);
+        return artifactsArray;
     }
 
     private JSONObject createTestsResultsJSONObject(TestResults testResults, boolean addErrors) throws JSONException {
