@@ -55,6 +55,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public class ServerNotificationTransport implements NotificationTransport
@@ -191,10 +192,22 @@ public class ServerNotificationTransport implements NotificationTransport
         logToBuildLog("Creating JSON object");
         JSONObject jsonObject = new JSONObject();
         try {
-            // Variable name contains "password" to ensure that the secret is hidden in the UI
-            VariableDefinition secretVariable = variableDefinitionManager.getGlobalVariables().stream().filter(vd -> vd.getKey().equals("SERVER_PLUGIN_SECRET_PASSWORD")).findFirst().get();
+            List<VariableDefinition> variableDefinitions = variableDefinitionManager.getGlobalVariables();
+            if (!variableDefinitions.isEmpty()) {
+                // Variable name contains "password" to ensure that the secret is hidden in the UI
+                Optional<VariableDefinition> optionalVariableDefinition = variableDefinitions.stream().filter(vd -> vd.getKey().equals("SERVER_PLUGIN_SECRET_PASSWORD")).findFirst();
+                if (optionalVariableDefinition.isPresent()) {
+                    jsonObject.put("secret", optionalVariableDefinition.get().getValue()); // Used to verify that the request is coming from a legitimate server
+                } else {
+                    jsonObject.put("secret", "SERVER_PLUGIN_SECRET_PASSWORD-NOT-DEFINED");
+                    logErrorToBuildLog("Variable SERVER_PLUGIN_SECRET_PASSWORD is not defined");
+                }
 
-            jsonObject.put("secret", secretVariable.getValue()); // Used to verify that the request is coming from a legitimate server
+            } else {
+                jsonObject.put("secret", "NO-GLOBAL-VARIABLES-ARE-DEFINED");
+                logErrorToBuildLog("No global variables are defined");
+            }
+
             jsonObject.put("notificationType", notification.getDescription());
 
             if (plan != null) {
