@@ -14,13 +14,16 @@ public class Issue {
 
     private Integer line;
 
-    public Issue(String classname, String type, String priority, String category, String message, Integer line) {
+    private Integer column;
+
+    public Issue(String classname, String type, String priority, String category, String message, Integer line, Integer column) {
         this.classname = classname;
         this.type = type;
         this.priority = priority;
         this.category = category;
         this.message = message;
         this.line = line;
+        this.column = column;
     }
 
     public String getClassname() {
@@ -69,5 +72,13 @@ public class Issue {
 
     public void setLine(Integer line) {
         this.line = line;
+    }
+
+    public Integer getColumn() {
+        return column;
+    }
+
+    public void setColumn(Integer column) {
+        this.column = column;
     }
 }

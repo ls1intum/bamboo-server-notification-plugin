@@ -16,13 +16,21 @@ public class ParserPolicy {
      * Selects the appropriate parsing strategy.
      *
      * @param tool String identifying the static code analysis tool
-     * @throws UnsupportedToolException - If specified Tool is not supported
+     * @throws UnsupportedToolException - If the specified tool is not supported
      */
-    public void configure(String tool) throws UnsupportedToolException {
+    public void configure(String tool) {
         // TODO: Inspect the document (identifying unique nodes) to select the appropriate strategy
         if (StaticAssessmentTool.SPOTBUGS.name().equalsIgnoreCase(tool)) {
             parser.setParserStrategy(new SpotbugsParser());
-        } else {
+        }
+        else if (StaticAssessmentTool.CHECKSYTLE.name().equalsIgnoreCase(tool)) {
+            parser.setParserStrategy(new CheckstyleParser());
+        }
+         /**
+        else if (StaticAssessmentTool.PMD.name().equalsIgnoreCase(tool)) {
+            parser.setParserStrategy(new PMDParser());
+         **/
+        else {
             throw new UnsupportedToolException("Report parsing for tool" + tool + "is not supported");
         }
     }
