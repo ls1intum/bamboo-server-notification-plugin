@@ -3,15 +3,12 @@ package de.tum.in.www1.bamboo.server.parser.strategy;
 import de.tum.in.www1.bamboo.server.parser.domain.Issue;
 import de.tum.in.www1.bamboo.server.parser.domain.Report;
 import de.tum.in.www1.bamboo.server.parser.domain.StaticAssessmentTool;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
+import nu.xom.Document;
+import nu.xom.Element;
 
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: Use XOM, JDOM, DOM4J instead of DOM (for Collection support)
 public class SpotbugsParser implements ParserStrategy {
 
     private static final String FILE_TAG = "file";
@@ -26,23 +23,24 @@ public class SpotbugsParser implements ParserStrategy {
     public Report parse(Document doc) {
         Report report = new Report(StaticAssessmentTool.SPOTBUGS);
         List<Issue> issues = new ArrayList<>();
-        NodeList fileNodes = doc.getElementsByTagName(FILE_TAG);
+        Element root = doc.getRootElement();
 
-        for (int i = 0; i < fileNodes.getLength(); i++) {
-            Node fileNode = fileNodes.item(i);
-            NamedNodeMap fileAttributes = fileNode.getAttributes();
-            String classname = fileAttributes.getNamedItem(FILE_ATT_CLASSNAME).getNodeValue();
-            NodeList bugInstances = fileNode.getChildNodes();
+        for (Element fileElement : root.getChildElements(FILE_TAG)) {
+            String classname = fileElement.getAttributeValue(FILE_ATT_CLASSNAME);
 
-            for (int j = 0; j < bugInstances.getLength(); j++) {
-                Node bugInstance = bugInstances.item(j);
-                NamedNodeMap bugInstanceAttributes = bugInstance.getAttributes();
-                String type = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_TYPE).getNodeValue();
-                String priority = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_PRIORITY).getNodeValue();
-                String category = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_CATEGORY).getNodeValue();
-                String message = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_MESSAGE).getNodeValue();
-                Integer line = Integer.parseInt(bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_LINENUMBER).getNodeValue());
-                issues.add(new Issue(classname, type, priority, category, message, line));
+            for (Element bugInstanceElement : fileElement.getChildElements()) {
+                String type = bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_TYPE);
+                String priority = bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_PRIORITY);
+                String category = bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_CATEGORY);
+                String message = bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_MESSAGE);
+                Integer line;
+                try {
+                    line = Integer.parseInt(bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_LINENUMBER));
+                } catch (NumberFormatException e) {
+                    // If for some reason the line number can't be parsed, we default to line 0
+                    line = 0;
+                }
+                issues.add(new Issue(classname, type, priority, category, message, line, null));
             }
         }
         report.setIssues(issues);
