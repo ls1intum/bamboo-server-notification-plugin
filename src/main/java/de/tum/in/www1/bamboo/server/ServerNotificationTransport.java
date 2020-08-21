@@ -50,7 +50,6 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -89,7 +88,7 @@ public class ServerNotificationTransport implements NotificationTransport
                                        @Nullable ResultsSummary resultsSummary,
                                        @Nullable DeploymentResult deploymentResult,
                                        CustomVariableContext customVariableContext,
-                                       BuildLoggerManager buildLoggerManager)
+                                       @Nullable BuildLoggerManager buildLoggerManager)
     {
         this.webhookUrl = customVariableContext.substituteString(webhookUrl);
         this.plan = plan;
@@ -328,7 +327,7 @@ public class ServerNotificationTransport implements NotificationTransport
         try {
             logToBuildLog("Creating artifact JSON object for artifact definition: " + label);
             String reportJSON = reportParser.transformToJSONReport(rootFile, label);
-            return Optional.ofNullable(new JSONObject(reportJSON));
+            return Optional.of(new JSONObject(reportJSON));
         } catch (JSONException e) {
             log.error("Error constructing artifact JSON for artifact definition " + label, e);
             logErrorToBuildLog("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage());
@@ -367,9 +366,7 @@ public class ServerNotificationTransport implements NotificationTransport
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
                 // TODO: Identify report in a more generic way
                 Optional<JSONObject> optionalReport = createStaticAssessmentJSONObject(fileDataProvider.getFile(), artifact.getLabel());
-                if (optionalReport.isPresent()) {
-                    artifactJSONObjects.add(optionalReport.get());
-                }
+                optionalReport.ifPresent(artifactJSONObjects::add);
             } else {
                 log.debug("Unsupported ArtifactLinkDataProvider " + dataProvider.getClass().getSimpleName()
                         + " encountered for label" + artifact.getLabel() + " in job " + jobId);
@@ -377,7 +374,7 @@ public class ServerNotificationTransport implements NotificationTransport
                         + artifact.getLabel() + " in job " + jobId);
             }
         }
-        artifactJSONObjects.stream().forEach(artifactsArray::put);
+        artifactJSONObjects.forEach(artifactsArray::put);
         return artifactsArray;
     }
 
@@ -416,18 +413,14 @@ public class ServerNotificationTransport implements NotificationTransport
     private void logToBuildLog(String s) {
         if (buildLoggerManager != null && plan != null) {
             BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
-            if (buildLogger != null) {
-                buildLogger.addBuildLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
-            }
+            buildLogger.addBuildLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
         }
     }
 
     private void logErrorToBuildLog(String s) {
         if (buildLoggerManager != null && plan != null) {
             BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
-            if (buildLogger != null) {
-                buildLogger.addErrorLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
-            }
+            buildLogger.addErrorLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
         }
     }
 }
