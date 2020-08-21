@@ -22,6 +22,9 @@ public class Issue {
 
     private Integer endColumn;
 
+    public Issue() {
+    }
+
     public Issue(String classname) {
         this.classname = classname;
     }
