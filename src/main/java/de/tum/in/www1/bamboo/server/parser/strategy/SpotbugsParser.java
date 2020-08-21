@@ -37,6 +37,7 @@ public class SpotbugsParser implements ParserStrategy {
                 issue.setPriority(bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_PRIORITY));
                 issue.setCategory(bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_CATEGORY));
                 issue.setMessage(bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_MESSAGE));
+                issue.setStartLine(ParserUtils.extractInt(bugInstanceElement, BUGINSTANCE_ATT_LINENUMBER));
 
                 issues.add(issue);
             }
