@@ -27,11 +27,11 @@ public class SpotbugsParser implements ParserStrategy {
 
         // Iterate over <file> elements
         for (Element fileElement : root.getChildElements(FILE_TAG)) {
-            String classpath = fileElement.getAttributeValue(FILE_ATT_CLASSNAME);
+            String className = fileElement.getAttributeValue(FILE_ATT_CLASSNAME);
 
             // Iterate over <bugInstance> elements
             for (Element bugInstanceElement : fileElement.getChildElements()) {
-                Issue issue = new Issue(classpath);
+                Issue issue = new Issue(className);
 
                 issue.setType(bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_TYPE));
                 issue.setPriority(bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_PRIORITY));

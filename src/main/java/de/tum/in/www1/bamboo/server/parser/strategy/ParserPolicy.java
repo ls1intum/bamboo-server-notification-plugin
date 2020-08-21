@@ -26,10 +26,9 @@ public class ParserPolicy {
         else if (StaticAssessmentTool.CHECKSYTLE.name().equalsIgnoreCase(tool)) {
             parser.setParserStrategy(new CheckstyleParser());
         }
-         /**
         else if (StaticAssessmentTool.PMD.name().equalsIgnoreCase(tool)) {
             parser.setParserStrategy(new PMDParser());
-         **/
+        }
         else {
             throw new UnsupportedToolException("Report parsing for tool" + tool + "is not supported");
         }

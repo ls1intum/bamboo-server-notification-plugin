@@ -30,11 +30,12 @@ public class CheckstyleParser implements ParserStrategy {
 
         // Iterate over all <file> elements
         for (Element fileElement : root.getChildElements(FILE_TAG)) {
-            String classPath = transformToFullyQualifiedClassName(fileElement.getAttributeValue(FILE_ATT_NAME));
+            String filePath = fileElement.getAttributeValue(FILE_ATT_NAME);
+            String className = ParserUtils.transformPathToFullyQualifiedClassName(filePath);
 
             // Iterate over all <error> elements
             for (Element errorElement : fileElement.getChildElements()) {
-                Issue issue = new Issue(classPath);
+                Issue issue = new Issue(className);
 
                 String errorSource = errorElement.getAttributeValue(ERROR_ATT_SOURCE);
                 extractRuleAndCategory(issue, errorSource);
@@ -49,27 +50,6 @@ public class CheckstyleParser implements ParserStrategy {
         }
         report.setIssues(issues);
         return report;
-    }
-
-    /**
-     * Transform the path to a fully qualified class name starting at the src directory.
-     * If src directory is not part of the path, the whole path will be transformed to a dotted notation and returned.
-     *
-     * @param path absolute path like C:/BambooTest/src/com/abc/staticCodeAnalysis/App.java
-     * @return the package name like com.abc.staticCodeAnalysis.App
-     */
-    private String transformToFullyQualifiedClassName(String path) {
-        if (path == null || path.isEmpty()) {
-            return path;
-        }
-        String packageDelimiter = File.separator + "src" + File.separator;
-        int indexOfSrc = path.indexOf(packageDelimiter);
-        // Fallback: Return the whole path if no src folder exists
-        if (indexOfSrc == -1) {
-            return path.replace(File.separator, ".");
-        }
-        int javaExtensionIndex = path.endsWith(".java") ? path.length() - 5 : path.length();
-        return path.substring(indexOfSrc + packageDelimiter.length(), javaExtensionIndex).replace(File.separator, ".");
     }
 
     /**
