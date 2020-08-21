@@ -25,22 +25,20 @@ public class SpotbugsParser implements ParserStrategy {
         List<Issue> issues = new ArrayList<>();
         Element root = doc.getRootElement();
 
+        // Iterate over <file> elements
         for (Element fileElement : root.getChildElements(FILE_TAG)) {
-            String classname = fileElement.getAttributeValue(FILE_ATT_CLASSNAME);
+            String classpath = fileElement.getAttributeValue(FILE_ATT_CLASSNAME);
 
+            // Iterate over <bugInstance> elements
             for (Element bugInstanceElement : fileElement.getChildElements()) {
-                String type = bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_TYPE);
-                String priority = bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_PRIORITY);
-                String category = bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_CATEGORY);
-                String message = bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_MESSAGE);
-                Integer line;
-                try {
-                    line = Integer.parseInt(bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_LINENUMBER));
-                } catch (NumberFormatException e) {
-                    // If for some reason the line number can't be parsed, we default to line 0
-                    line = 0;
-                }
-                issues.add(new Issue(classname, type, priority, category, message, line, null));
+                Issue issue = new Issue(classpath);
+
+                issue.setType(bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_TYPE));
+                issue.setPriority(bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_PRIORITY));
+                issue.setCategory(bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_CATEGORY));
+                issue.setMessage(bugInstanceElement.getAttributeValue(BUGINSTANCE_ATT_MESSAGE));
+
+                issues.add(issue);
             }
         }
         report.setIssues(issues);

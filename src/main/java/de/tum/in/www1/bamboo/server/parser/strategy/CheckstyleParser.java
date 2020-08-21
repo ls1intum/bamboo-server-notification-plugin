@@ -6,6 +6,7 @@ import de.tum.in.www1.bamboo.server.parser.domain.StaticAssessmentTool;
 import nu.xom.Document;
 import nu.xom.Element;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,18 +14,13 @@ public class CheckstyleParser implements ParserStrategy {
 
     private static final String FILE_TAG = "file";
     private static final String FILE_ATT_NAME = "name";
-    /**
-     * The source attribute of error elements looks like com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocPackageCheck
-     * where the first segment after 'checks' denotes the category and the segment after denotes rule. The are rules
-     * which do not belong to a category e.g. com.puppycrawl.tools.checkstyle.checks.NewlineAtEndOfFileCheck. In this
-     * case we will use the rule name as the category.
-     */
     private static final String ERROR_ATT_SOURCE = "source";
     private static final String ERROR_ATT_SEVERITY = "severity";
     private static final String ERROR_ATT_MESSAGE = "message";
     private static final String ERROR_ATT_LINENUMBER = "line";
     private static final String ERROR_ATT_COLUMN = "column";
     private static final String CATEGORY_DELIMITER = "checks";
+    private static final String CATEGORY_MISCELLANEOUS = "miscellaneous";
 
     @Override
     public Report parse(Document doc) {
@@ -34,37 +30,74 @@ public class CheckstyleParser implements ParserStrategy {
 
         // Iterate over all <file> elements
         for (Element fileElement : root.getChildElements(FILE_TAG)) {
-            String classname = fileElement.getAttributeValue(FILE_ATT_NAME);
+            String classPath = transformToFullyQualifiedClassName(fileElement.getAttributeValue(FILE_ATT_NAME));
 
             // Iterate over all <error> elements
             for (Element errorElement : fileElement.getChildElements()) {
+                Issue issue = new Issue(classPath);
+
                 String errorSource = errorElement.getAttributeValue(ERROR_ATT_SOURCE);
-                String[] errorSegments = errorSource.split("\\.");
-                String type = errorSegments[errorSegments.length - 1];
-                String category = errorSegments[errorSegments.length - 2];
-                if (category.equals(CATEGORY_DELIMITER)) {
-                    category = type;
-                }
-                String priority = errorElement.getAttributeValue(ERROR_ATT_SEVERITY);
-                String message = errorElement.getAttributeValue(ERROR_ATT_MESSAGE);
-                Integer line;
-                try {
-                    line = Integer.parseInt(errorElement.getAttributeValue(ERROR_ATT_LINENUMBER));
-                } catch (NumberFormatException e) {
-                    // If for some reason the line number can't be parsed, we default to line 0
-                    line = 0;
-                }
-                Integer column;
-                try {
-                    column = Integer.parseInt(errorElement.getAttributeValue(ERROR_ATT_COLUMN));
-                } catch (NumberFormatException e) {
-                    // If for some reason the column number can't be parsed, we default to column 0
-                    column = 0;
-                }
-                issues.add(new Issue(classname, type, priority, category, message, line, column));
+                extractRuleAndCategory(issue, errorSource);
+
+                issue.setPriority(errorElement.getAttributeValue(ERROR_ATT_SEVERITY));
+                issue.setMessage(errorElement.getAttributeValue(ERROR_ATT_MESSAGE));
+                issue.setStartLine(ParserUtils.extractInt(errorElement, ERROR_ATT_LINENUMBER));
+                issue.setEndColumn(ParserUtils.extractInt(errorElement, ERROR_ATT_COLUMN));
+
+                issues.add(issue);
             }
         }
         report.setIssues(issues);
         return report;
+    }
+
+    /**
+     * Transform the path to a fully qualified class name starting at the src directory.
+     * If src directory is not part of the path, the whole path will be transformed to a dotted notation and returned.
+     *
+     * @param path absolute path like C:/BambooTest/src/com/abc/staticCodeAnalysis/App.java
+     * @return the package name like com.abc.staticCodeAnalysis.App
+     */
+    private String transformToFullyQualifiedClassName(String path) {
+        if (path == null || path.isEmpty()) {
+            return path;
+        }
+        String packageDelimiter = File.separator + "src" + File.separator;
+        int indexOfSrc = path.indexOf(packageDelimiter);
+        // Fallback: Return the whole path if no src folder exists
+        if (indexOfSrc == -1) {
+            return path.replace(File.separator, ".");
+        }
+        int javaExtensionIndex = path.endsWith(".java") ? path.length() - 5 : path.length();
+        return path.substring(indexOfSrc + packageDelimiter.length(), javaExtensionIndex).replace(File.separator, ".");
+    }
+
+    /**
+     * Extracts and sets the rule and the category given the check's package name.
+     *
+     * @param issue issue under construction
+     * @param errorSource package like com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocPackageCheck. The first
+     *                    segment after '.checks.' denotes the category and the segment after the rule. Some rules do
+     *                    not belong to a category e.g. com.puppycrawl.tools.checkstyle.checks.NewlineAtEndOfFileCheck.
+     *                    Such rule will be grouped under {@link #CATEGORY_MISCELLANEOUS}.
+     */
+    private void extractRuleAndCategory(Issue issue, String errorSource) {
+        String[] errorSourceSegments = errorSource.split("\\.");
+        int noOfSegments = errorSourceSegments.length;
+
+        // Should never happen but check for robustness
+        if (noOfSegments < 2) {
+            issue.setCategory(errorSource);
+            return;
+        }
+        String type = errorSourceSegments[noOfSegments - 1];
+        String category = errorSourceSegments[noOfSegments - 2];
+
+        // Check if the rule has a category
+        if (category.equals(CATEGORY_DELIMITER)) {
+            category = CATEGORY_MISCELLANEOUS;
+        }
+        issue.setType(type);
+        issue.setCategory(category);
     }
 }

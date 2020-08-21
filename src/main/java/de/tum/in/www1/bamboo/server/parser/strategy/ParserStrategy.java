@@ -13,5 +13,4 @@ public interface ParserStrategy {
      * @return Report object containing the parsed report information
      */
     Report parse(Document doc);
-
 }

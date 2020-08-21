@@ -6,24 +6,24 @@ public class Issue {
 
     private String type;
 
+    // TODO: This is currently not used in Artemis but could be useful for further filtering.
+    // Map tool specific codes to a common format
     private String priority;
 
     private String category;
 
     private String message;
 
-    private Integer line;
+    private Integer startLine;
 
-    private Integer column;
+    private Integer endLine;
 
-    public Issue(String classname, String type, String priority, String category, String message, Integer line, Integer column) {
+    private Integer startColumn;
+
+    private Integer endColumn;
+
+    public Issue(String classname) {
         this.classname = classname;
-        this.type = type;
-        this.priority = priority;
-        this.category = category;
-        this.message = message;
-        this.line = line;
-        this.column = column;
     }
 
     public String getClassname() {
@@ -66,19 +66,35 @@ public class Issue {
         this.message = message;
     }
 
-    public Integer getLine() {
-        return line;
+    public Integer getStartLine() {
+        return startLine;
     }
 
-    public void setLine(Integer line) {
-        this.line = line;
+    public void setStartLine(Integer startLine) {
+        this.startLine = startLine;
     }
 
-    public Integer getColumn() {
-        return column;
+    public Integer getEndLine() {
+        return endLine;
     }
 
-    public void setColumn(Integer column) {
-        this.column = column;
+    public void setEndLine(Integer endLine) {
+        this.endLine = endLine;
+    }
+
+    public Integer getStartColumn() {
+        return startColumn;
+    }
+
+    public void setStartColumn(Integer startColumn) {
+        this.startColumn = startColumn;
+    }
+
+    public Integer getEndColumn() {
+        return endColumn;
+    }
+
+    public void setEndColumn(Integer endColumn) {
+        this.endColumn = endColumn;
     }
 }
