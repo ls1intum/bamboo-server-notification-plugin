@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class TestResultsContainer {
+public class ResultsContainer {
 
     private final PlanResultKey planResultKey;
     private final long initTimestamp = System.currentTimeMillis();
@@ -17,11 +17,11 @@ public class TestResultsContainer {
     private Collection<TestResults> skippedTests = new ArrayList<>();
     private Collection<TestResults> failedTests = new ArrayList<>();
 
-    public TestResultsContainer(PlanResultKey planResultKey) {
+    public ResultsContainer(PlanResultKey planResultKey) {
         this.planResultKey = planResultKey;
     }
 
-    public TestResultsContainer(PlanResultKey planResultKey, Collection<TestResults> successfulTests, Collection<TestResults> skippedTests, Collection<TestResults> failedTests) {
+    public ResultsContainer(PlanResultKey planResultKey, Collection<TestResults> successfulTests, Collection<TestResults> skippedTests, Collection<TestResults> failedTests) {
         this.planResultKey = planResultKey;
         this.successfulTests = successfulTests;
         this.skippedTests = skippedTests;
@@ -50,7 +50,7 @@ public class TestResultsContainer {
 
     @Override
     public String toString() {
-        return "TestResultsContainer{" +
+        return "ResultsContainer{" +
                 "planResultKey=" + planResultKey +
                 ", initTimestamp=" + initTimestamp +
                 ", successfulTests=" + successfulTests +

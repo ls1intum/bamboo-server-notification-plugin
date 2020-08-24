@@ -50,7 +50,6 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -276,16 +275,16 @@ public class ServerNotificationTransport implements NotificationTransport
                             jobDetails.put("id", buildResultsSummary.getId());
 
                             logToBuildLog("Loading cached test results for job " + buildResultsSummary.getId());
-                            TestResultsContainer testResultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
-                            if (testResultsContainer != null) {
+                            ResultsContainer resultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
+                            if (resultsContainer != null) {
                                 logToBuildLog("Tests results found");
-                                JSONArray successfulTestDetails = createTestsResultsJSONArray(testResultsContainer.getSuccessfulTests(), false);
+                                JSONArray successfulTestDetails = createTestsResultsJSONArray(resultsContainer.getSuccessfulTests(), false);
                                 jobDetails.put("successfulTests", successfulTestDetails);
 
-                                JSONArray skippedTestDetails = createTestsResultsJSONArray(testResultsContainer.getSkippedTests(), false);
+                                JSONArray skippedTestDetails = createTestsResultsJSONArray(resultsContainer.getSkippedTests(), false);
                                 jobDetails.put("skippedTests", skippedTestDetails);
 
-                                JSONArray failedTestDetails = createTestsResultsJSONArray(testResultsContainer.getFailedTests(), true);
+                                JSONArray failedTestDetails = createTestsResultsJSONArray(resultsContainer.getFailedTests(), true);
                                 jobDetails.put("failedTests", failedTestDetails);
                             } else {
                                 logErrorToBuildLog("Could not load cached test results!");
