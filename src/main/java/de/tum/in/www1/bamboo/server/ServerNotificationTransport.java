@@ -417,7 +417,8 @@ public class ServerNotificationTransport implements NotificationTransport
     }
 
     /**
-     * Creates an JSONArray containing task names and their state (Success, Failed, Error)
+     * Creates an JSONArray containing task name, plugin key, whether the task is final or enabled and the
+     * state (SUCCESS, FAILED, ERROR) for each defined task.
      *
      * @param taskResults Collection of all defined tasks with details
      * @return JSONArray containing the name and state
@@ -429,6 +430,9 @@ public class ServerNotificationTransport implements NotificationTransport
         for (TaskResult taskResult : taskResults) {
             JSONObject taskJSON = new JSONObject();
             taskJSON.put("name", taskResult.getTaskIdentifier().getUserDescription());
+            taskJSON.put("pluginKey", taskResult.getTaskIdentifier().getPluginKey());
+            taskJSON.put("isEnabled", taskResult.getTaskIdentifier().isEnabled());
+            taskJSON.put("isFinal", taskResult.getTaskIdentifier().isFinalising());
             taskJSON.put("state", taskResult.getTaskState().name());
             tasksArray.put(taskJSON);
         }
