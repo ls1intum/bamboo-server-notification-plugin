@@ -10,10 +10,12 @@ public class BuildCompleteListener {
     public void onPostBuildComplete(final PostBuildCompletedEvent postBuildCompletedEvent) {
         CurrentBuildResult currentBuildResult = postBuildCompletedEvent.getContext().getBuildResult();
 
-        TestResultsContainer testResultsContainer = new TestResultsContainer(postBuildCompletedEvent.getPlanResultKey(), currentBuildResult.getSuccessfulTestResults(), currentBuildResult.getSkippedTestResults(), currentBuildResult.getFailedTestResults());
-        ServerNotificationRecipient.getCachedTestResults().put(postBuildCompletedEvent.getPlanResultKey().toString(), testResultsContainer);
+        ResultsContainer resultsContainer = new ResultsContainer(postBuildCompletedEvent.getPlanResultKey(),
+                currentBuildResult.getSuccessfulTestResults(), currentBuildResult.getSkippedTestResults(),
+                currentBuildResult.getFailedTestResults(), currentBuildResult.getTaskResults());
+        ServerNotificationRecipient.getCachedTestResults().put(postBuildCompletedEvent.getPlanResultKey().toString(), resultsContainer);
 
-        // Remove old TestResultsContainer based on their initialization timestamp
+        // Remove old ResultsContainer based on their initialization timestamp
         ServerNotificationRecipient.clearOldTestResultsContainer();
     }
 
