@@ -20,6 +20,7 @@ import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.resultsummary.tests.TestCaseResultError;
 import com.atlassian.bamboo.resultsummary.tests.TestResultsSummary;
 import com.atlassian.bamboo.resultsummary.vcs.RepositoryChangeset;
+import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.utils.HttpUtils;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinition;
@@ -286,6 +287,9 @@ public class ServerNotificationTransport implements NotificationTransport
 
                                 JSONArray failedTestDetails = createTestsResultsJSONArray(resultsContainer.getFailedTests(), true);
                                 jobDetails.put("failedTests", failedTestDetails);
+
+                                JSONArray taskResults = createTaskResultsJSONArray(resultsContainer.getTaskResults());
+                                jobDetails.put("tasks", taskResults);
                             } else {
                                 logErrorToBuildLog("Could not load cached test results!");
                             }
@@ -409,6 +413,24 @@ public class ServerNotificationTransport implements NotificationTransport
             testResultsArray.put(createTestsResultsJSONObject(testResults, addErrors));
         }
 
+        return testResultsArray;
+    }
+
+    /**
+     * Creates an JSONArray containing task names and their state (Success, Failed, Error)
+     *
+     * @param taskResults Collection of all defined tasks with details
+     * @return JSONArray containing the name and state
+     * @throws JSONException
+     */
+    private JSONArray createTaskResultsJSONArray(Collection<TaskResult> taskResults) throws JSONException {
+        logToBuildLog("Creating tasks JSON array");
+        JSONArray testResultsArray = new JSONArray();
+        for (TaskResult taskResult : taskResults) {
+            JSONObject testResultsJSON = new JSONObject();
+            testResultsJSON.put("name", taskResult.getTaskIdentifier().getUserDescription());
+            testResultsJSON.put("state", taskResult.getTaskState().toString());
+        }
         return testResultsArray;
     }
 
