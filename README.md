@@ -167,28 +167,28 @@ Sample request
             ],
             "tasks":[
                {
-                  "name":"checkout",
+                  "description":"checkout",
                   "pluginKey":"com.atlassian.bamboo.plugins.vcs:task.vcs.checkout",
                   "isEnabled":true,
                   "isFinal":false,
                   "status":"SUCCESS"
                },
                {
-                  "name":"compile",
+                  "description":"compile",
                   "pluginKey":"com.atlassian.bamboo.plugins.maven:task.builder.mvn3",
                   "isEnabled":true,
                   "isFinal":false,
                   "status":"SUCCESS"
                },
                {
-                  "name":"test-compile",
+                  "description":"test-compile",
                   "pluginKey":"com.atlassian.bamboo.plugins.maven:task.builder.mvn3",
                   "isEnabled":true,
                   "isFinal":false,
                   "status":"SUCCESS"
                },
                {
-                  "name":"tests",
+                  "description":"tests",
                   "pluginKey":"com.atlassian.bamboo.plugins.maven:task.builder.mvn3",
                   "isEnabled":true,
                   "isFinal":false,

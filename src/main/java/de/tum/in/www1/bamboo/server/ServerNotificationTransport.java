@@ -429,7 +429,7 @@ public class ServerNotificationTransport implements NotificationTransport
         JSONArray tasksArray = new JSONArray();
         for (TaskResult taskResult : taskResults) {
             JSONObject taskJSON = new JSONObject();
-            taskJSON.put("name", taskResult.getTaskIdentifier().getUserDescription());
+            taskJSON.put("description", taskResult.getTaskIdentifier().getUserDescription());
             taskJSON.put("pluginKey", taskResult.getTaskIdentifier().getPluginKey());
             taskJSON.put("isEnabled", taskResult.getTaskIdentifier().isEnabled());
             taskJSON.put("isFinal", taskResult.getTaskIdentifier().isFinalising());
