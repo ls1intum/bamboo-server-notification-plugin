@@ -425,13 +425,14 @@ public class ServerNotificationTransport implements NotificationTransport
      */
     private JSONArray createTasksJSONArray(Collection<TaskResult> taskResults) throws JSONException {
         logToBuildLog("Creating tasks JSON array");
-        JSONArray testResultsArray = new JSONArray();
+        JSONArray tasksArray = new JSONArray();
         for (TaskResult taskResult : taskResults) {
-            JSONObject testResultsJSON = new JSONObject();
-            testResultsJSON.put("name", taskResult.getTaskIdentifier().getUserDescription());
-            testResultsJSON.put("state", taskResult.getTaskState().toString());
+            JSONObject taskJSON = new JSONObject();
+            taskJSON.put("name", taskResult.getTaskIdentifier().getUserDescription());
+            taskJSON.put("state", taskResult.getTaskState().toString());
+            tasksArray.put(taskJSON);
         }
-        return testResultsArray;
+        return tasksArray;
     }
 
     private void logToBuildLog(String s) {
