@@ -165,6 +165,20 @@ Sample request
                   "className":"de.de.ClassTest"
                }
             ],
+            "tasks":[
+               {
+                  "name":"compile",
+                  "status":"SUCCESS"
+               },
+               {
+                  "name":"test-compile",
+                  "status":"SUCCESS"
+               },
+               {
+                  "name":"tests",
+                  "status":"FAILED"
+               }           
+            ],
             "staticAssessmentReports":[
                {
                   "tool":"SPOTBUGS",

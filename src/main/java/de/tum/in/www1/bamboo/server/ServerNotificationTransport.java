@@ -429,7 +429,7 @@ public class ServerNotificationTransport implements NotificationTransport
         for (TaskResult taskResult : taskResults) {
             JSONObject taskJSON = new JSONObject();
             taskJSON.put("name", taskResult.getTaskIdentifier().getUserDescription());
-            taskJSON.put("state", taskResult.getTaskState().toString());
+            taskJSON.put("state", taskResult.getTaskState().name());
             tasksArray.put(taskJSON);
         }
         return tasksArray;
