@@ -30,7 +30,7 @@ Compiling from source
 
 You first need to [Set up the Atlassian Plugin SDK](https://developer.atlassian.com/docs/getting-started/set-up-the-atlassian-plugin-sdk-and-build-a-project). Or you could just do a `brew tap atlassian/tap; brew install atlassian/tap/atlassian-plugin-sdk` on a mac is you use HomeBrew... At the project top level (where the pom.xml is) :
 
-1.	Compile : `atlas-mvn compile`
+1.	Compile : `atlas-compile`
 2.	Run : `atlas-run`
 3.	Debug : `atlas-debug`
 
@@ -169,8 +169,23 @@ Sample request
                   "className":"de.de.ClassTest"
                }
             ],
-            "id":14581874,
+            "staticAssessmentReports":[
+               {
+                  "tool":"SPOTBUGS",
+                  "issues":[
+                     {
+                         "classname":"com.stefan.staticCodeAnalysis.App",
+                         "type":"ES_COMPARING_PARAMETER_STRING_WITH_EQ",
+                         "priority":"High",
+                         "category":"BAD_PRACTICE",
+                         "message":"Comparison of String parameter using == or != in com.stefan.staticCodeAnalysis.App.equalString(String)",
+                         "line":16
+                     }
+                  ]
+               }
+            ],
             "logs": []
+            "id":14581874,
          }
       ],
       "successful":false

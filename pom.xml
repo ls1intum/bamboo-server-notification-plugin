@@ -9,7 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.tum.in.www1</groupId>
     <artifactId>bamboo-server</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <organization>
         <name>LS1 TUM</name>
         <url>http://www1.in.tum.de/</url>
@@ -29,6 +29,7 @@
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
         <atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
         <platform.version>4.0.0</platform.version>
+        <jackson.version>2.11.0</jackson.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
     </properties>
@@ -49,6 +50,11 @@
     </repositories>
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.atlassian.platform</groupId>
                 <artifactId>platform</artifactId>
