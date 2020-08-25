@@ -288,7 +288,7 @@ public class ServerNotificationTransport implements NotificationTransport
                                 JSONArray failedTestDetails = createTestsResultsJSONArray(resultsContainer.getFailedTests(), true);
                                 jobDetails.put("failedTests", failedTestDetails);
 
-                                JSONArray taskResults = createTaskResultsJSONArray(resultsContainer.getTaskResults());
+                                JSONArray taskResults = createTasksJSONArray(resultsContainer.getTaskResults());
                                 jobDetails.put("tasks", taskResults);
                             } else {
                                 logErrorToBuildLog("Could not load cached test results!");
@@ -423,7 +423,7 @@ public class ServerNotificationTransport implements NotificationTransport
      * @return JSONArray containing the name and state
      * @throws JSONException
      */
-    private JSONArray createTaskResultsJSONArray(Collection<TaskResult> taskResults) throws JSONException {
+    private JSONArray createTasksJSONArray(Collection<TaskResult> taskResults) throws JSONException {
         logToBuildLog("Creating tasks JSON array");
         JSONArray testResultsArray = new JSONArray();
         for (TaskResult taskResult : taskResults) {
