@@ -184,8 +184,8 @@ Sample request
                   ]
                }
             ],
-            "logs": []
-            "id":14581874,
+            "logs": [],
+            "id":14581874
          }
       ],
       "successful":false
