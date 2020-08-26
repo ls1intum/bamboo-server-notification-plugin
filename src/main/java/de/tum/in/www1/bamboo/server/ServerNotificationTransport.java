@@ -84,6 +84,8 @@ public class ServerNotificationTransport implements NotificationTransport
     private final DeploymentResult deploymentResult;
     @Nullable
     private final BuildLoggerManager buildLoggerManager;
+    @Nullable
+    private final BuildLogFileAccessorFactory buildLogFileAccessorFactory;
 
     // Will be injected by Bamboo
     private VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager");
@@ -456,7 +458,7 @@ public class ServerNotificationTransport implements NotificationTransport
      *
      * @param taskResults Collection of all defined tasks with details
      * @return JSONArray containing the name and state
-     * @throws JSONException
+     * @throws JSONException if JSONObject can't be created
      */
     private JSONArray createTasksJSONArray(Collection<TaskResult> taskResults) throws JSONException {
         logToBuildLog("Creating tasks JSON array");
