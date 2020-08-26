@@ -1,6 +1,7 @@
 package de.tum.in.www1.bamboo.server;
 
 import com.atlassian.bamboo.build.BuildLoggerManager;
+import com.atlassian.bamboo.build.logger.BuildLogFileAccessorFactory;
 import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.notification.NotificationRecipient;
 import com.atlassian.bamboo.notification.NotificationTransport;
@@ -10,6 +11,7 @@ import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.plugin.descriptor.NotificationRecipientModuleDescriptor;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
+import com.atlassian.bamboo.storage.StorageLocationService;
 import com.atlassian.bamboo.template.TemplateRenderer;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Lists;
@@ -38,8 +40,9 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     private DeploymentResult deploymentResult;
     private CustomVariableContext customVariableContext;
     private static BuildLoggerManager buildLoggerManager;
+    private static BuildLogFileAccessorFactory buildLogFileAccessorFactory;
 
-    // Time in seconds before removing TestResultsContainer
+    // Time in seconds before removing ResultsContainer
     private static final int TESTRESULTSCONTAINER_REMOVE_TIME = 60;
 
     /*
@@ -47,12 +50,12 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
      * The TestResults need a BuildContext and can therefor only be accessed when using an Event that extends BuildContextEvent.
      * The normal BuildCompletedEvent does not extend BuildContextEvent, but the PostBuildCompletedEvent does.
      * We listen for the PostBuildCompletedEvent and save the test cases in this Map with the key of the job as String.
-     * The TestResults are stored inside the TestResultsContainer class and it can be retrieved using this Map in the ServerNotificationTransport class.
-     * A method clearOldTestResultsContainer() has been added, that removes old TestResultsContainer from the Map, because we add every build to this Map, even those without
+     * The TestResults are stored inside the ResultsContainer class and it can be retrieved using this Map in the ServerNotificationTransport class.
+     * A method clearOldTestResultsContainer() has been added, that removes old ResultsContainer from the Map, because we add every build to this Map, even those without
      * Notifications enabled.
-     * The time (in seconds) after the TestResultsContainer can be specified in the variable TESTRESULTSCONTAINER_REMOVE_TIME.
+     * The time (in seconds) after the ResultsContainer can be specified in the variable TESTRESULTSCONTAINER_REMOVE_TIME.
      */
-    private static Map<String, TestResultsContainer> cachedTestResults = new ConcurrentHashMap<>();
+    private static Map<String, ResultsContainer> cachedTestResults = new ConcurrentHashMap<>();
 
     @Override
     public void populate(@NotNull Map<String, String[]> params)
@@ -134,7 +137,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     public List<NotificationTransport> getTransports()
     {
         List<NotificationTransport> list = Lists.newArrayList();
-        list.add(new ServerNotificationTransport(webhookUrl, plan, resultsSummary, deploymentResult, customVariableContext, buildLoggerManager));
+        list.add(new ServerNotificationTransport(webhookUrl, plan, resultsSummary, deploymentResult, customVariableContext, buildLoggerManager, buildLogFileAccessorFactory));
         return list;
     }
 
@@ -168,7 +171,17 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
         return buildLoggerManager;
     }
 
-    public static Map<String, TestResultsContainer> getCachedTestResults() {
+    public void setBuildLogFileAccessorFactory(@Nullable final BuildLogFileAccessorFactory buildLogFileAccessorFactory)
+    {
+        this.buildLogFileAccessorFactory = buildLogFileAccessorFactory;
+    }
+
+    public static BuildLogFileAccessorFactory getBuildLogFileAccessorFactory()
+    {
+        return buildLogFileAccessorFactory;
+    }
+
+    public static Map<String, ResultsContainer> getCachedTestResults() {
         return cachedTestResults;
     }
 

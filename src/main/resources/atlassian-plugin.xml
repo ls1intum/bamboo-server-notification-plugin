@@ -24,6 +24,8 @@
 
     <component-import key="buildLoggerManager" interface="com.atlassian.bamboo.build.BuildLoggerManager"/>
 
+    <component-import key="buildLogFileAccessorFactory" interface="com.atlassian.bamboo.build.logger.BuildLogFileAccessorFactory"/>
+
     <bambooEventListener key="buildCompleteListener"
                          class="de.tum.in.www1.bamboo.server.BuildCompleteListener"/>
 </atlassian-plugin>
