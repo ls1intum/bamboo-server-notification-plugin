@@ -214,7 +214,44 @@ Sample request
                   ]
                }
             ],
-            "logs": [],
+            "logs": [
+               {
+                  "date":"Wed Aug 26 09:00:22 GMT 2020",
+                  "log":"[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.8.1:compile (default-compile) on project BSN-2-Tests: Compilation failure"
+               },
+               {
+                  "date":"Wed Aug 26 09:00:22 GMT 2020",
+                  "log":"[ERROR] /home/bamboo/bamboo-agent-home/xml-data/build-dir/BSNBSN2-ADMIN-JOB1/assignment/src/de/tum/in/ase/BubbleSort.java:[9,2] ';' expected"
+               },
+               {
+                  "date":"Wed Aug 26 09:00:22 GMT 2020",
+                  "log":"[ERROR] -&gt; [Help 1]"
+               },
+               {
+                  "date":"Wed Aug 26 09:00:22 GMT 2020",
+                  "log":"[ERROR] "
+               },
+               {
+                  "date":"Wed Aug 26 09:00:22 GMT 2020",
+                  "log":"[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch."
+               },
+               {
+                  "date":"Wed Aug 26 09:00:22 GMT 2020",
+                  "log":"[ERROR] Re-run Maven using the -X switch to enable full debug logging."
+               },
+               {
+                  "date":"Wed Aug 26 09:00:22 GMT 2020",
+                  "log":"[ERROR] "
+               },
+               {
+                  "date":"Wed Aug 26 09:00:22 GMT 2020",
+                  "log":"[ERROR] For more information about the errors and possible solutions, please read the following articles:"
+               },
+               {
+                  "date":"Wed Aug 26 09:00:22 GMT 2020",
+                  "log":"[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException"
+               }
+            ],
             "id":14581874
          }
       ],
