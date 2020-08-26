@@ -24,7 +24,7 @@ public class CheckstyleParser implements ParserStrategy {
 
     @Override
     public Report parse(Document doc) {
-        Report report = new Report(StaticAssessmentTool.CHECKSYTLE);
+        Report report = new Report(StaticAssessmentTool.CHECKSTYLE);
         List<Issue> issues = new ArrayList<>();
         Element root = doc.getRootElement();
 
