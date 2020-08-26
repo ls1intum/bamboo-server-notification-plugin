@@ -42,7 +42,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     private static BuildLoggerManager buildLoggerManager;
     private static BuildLogFileAccessorFactory buildLogFileAccessorFactory;
 
-    // Time in seconds before removing TestResultsContainer
+    // Time in seconds before removing ResultsContainer
     private static final int TESTRESULTSCONTAINER_REMOVE_TIME = 60;
 
     /*
@@ -50,12 +50,12 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
      * The TestResults need a BuildContext and can therefor only be accessed when using an Event that extends BuildContextEvent.
      * The normal BuildCompletedEvent does not extend BuildContextEvent, but the PostBuildCompletedEvent does.
      * We listen for the PostBuildCompletedEvent and save the test cases in this Map with the key of the job as String.
-     * The TestResults are stored inside the TestResultsContainer class and it can be retrieved using this Map in the ServerNotificationTransport class.
-     * A method clearOldTestResultsContainer() has been added, that removes old TestResultsContainer from the Map, because we add every build to this Map, even those without
+     * The TestResults are stored inside the ResultsContainer class and it can be retrieved using this Map in the ServerNotificationTransport class.
+     * A method clearOldTestResultsContainer() has been added, that removes old ResultsContainer from the Map, because we add every build to this Map, even those without
      * Notifications enabled.
-     * The time (in seconds) after the TestResultsContainer can be specified in the variable TESTRESULTSCONTAINER_REMOVE_TIME.
+     * The time (in seconds) after the ResultsContainer can be specified in the variable TESTRESULTSCONTAINER_REMOVE_TIME.
      */
-    private static Map<String, TestResultsContainer> cachedTestResults = new ConcurrentHashMap<>();
+    private static Map<String, ResultsContainer> cachedTestResults = new ConcurrentHashMap<>();
 
     @Override
     public void populate(@NotNull Map<String, String[]> params)

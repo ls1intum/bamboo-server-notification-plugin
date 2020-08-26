@@ -25,6 +25,7 @@ import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.resultsummary.tests.TestCaseResultError;
 import com.atlassian.bamboo.resultsummary.tests.TestResultsSummary;
 import com.atlassian.bamboo.resultsummary.vcs.RepositoryChangeset;
+import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.utils.HttpUtils;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinition;
@@ -56,7 +57,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -293,17 +293,20 @@ public class ServerNotificationTransport implements NotificationTransport
                             jobDetails.put("id", buildResultsSummary.getId());
 
                             logToBuildLog("Loading cached test results for job " + buildResultsSummary.getId());
-                            TestResultsContainer testResultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
-                            if (testResultsContainer != null) {
+                            ResultsContainer resultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
+                            if (resultsContainer != null) {
                                 logToBuildLog("Tests results found");
-                                JSONArray successfulTestDetails = createTestsResultsJSONArray(testResultsContainer.getSuccessfulTests(), false);
+                                JSONArray successfulTestDetails = createTestsResultsJSONArray(resultsContainer.getSuccessfulTests(), false);
                                 jobDetails.put("successfulTests", successfulTestDetails);
 
-                                JSONArray skippedTestDetails = createTestsResultsJSONArray(testResultsContainer.getSkippedTests(), false);
+                                JSONArray skippedTestDetails = createTestsResultsJSONArray(resultsContainer.getSkippedTests(), false);
                                 jobDetails.put("skippedTests", skippedTestDetails);
 
-                                JSONArray failedTestDetails = createTestsResultsJSONArray(testResultsContainer.getFailedTests(), true);
+                                JSONArray failedTestDetails = createTestsResultsJSONArray(resultsContainer.getFailedTests(), true);
                                 jobDetails.put("failedTests", failedTestDetails);
+
+                                JSONArray taskResults = createTasksJSONArray(resultsContainer.getTaskResults());
+                                jobDetails.put("tasks", taskResults);
                             } else {
                                 logErrorToBuildLog("Could not load cached test results!");
                             }
@@ -449,6 +452,29 @@ public class ServerNotificationTransport implements NotificationTransport
         }
 
         return testResultsArray;
+    }
+
+    /**
+     * Creates an JSONArray containing task name, plugin key, whether the task is final or enabled and the
+     * state (SUCCESS, FAILED, ERROR) for each defined task.
+     *
+     * @param taskResults Collection of all defined tasks with details
+     * @return JSONArray containing the name and state
+     * @throws JSONException
+     */
+    private JSONArray createTasksJSONArray(Collection<TaskResult> taskResults) throws JSONException {
+        logToBuildLog("Creating tasks JSON array");
+        JSONArray tasksArray = new JSONArray();
+        for (TaskResult taskResult : taskResults) {
+            JSONObject taskJSON = new JSONObject();
+            taskJSON.put("description", taskResult.getTaskIdentifier().getUserDescription());
+            taskJSON.put("pluginKey", taskResult.getTaskIdentifier().getPluginKey());
+            taskJSON.put("isEnabled", taskResult.getTaskIdentifier().isEnabled());
+            taskJSON.put("isFinal", taskResult.getTaskIdentifier().isFinalising());
+            taskJSON.put("state", taskResult.getTaskState().name());
+            tasksArray.put(taskJSON);
+        }
+        return tasksArray;
     }
 
     private JSONObject createLogEntryJSONObject(LogEntry logEntry) throws JSONException {

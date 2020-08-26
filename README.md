@@ -169,6 +169,36 @@ Sample request
                   "className":"de.de.ClassTest"
                }
             ],
+            "tasks":[
+               {
+                  "description":"checkout",
+                  "pluginKey":"com.atlassian.bamboo.plugins.vcs:task.vcs.checkout",
+                  "isEnabled":true,
+                  "isFinal":false,
+                  "state":"SUCCESS"
+               },
+               {
+                  "description":"compile",
+                  "pluginKey":"com.atlassian.bamboo.plugins.maven:task.builder.mvn3",
+                  "isEnabled":true,
+                  "isFinal":false,
+                  "state":"SUCCESS"
+               },
+               {
+                  "description":"test-compile",
+                  "pluginKey":"com.atlassian.bamboo.plugins.maven:task.builder.mvn3",
+                  "isEnabled":true,
+                  "isFinal":false,
+                  "state":"SUCCESS"
+               },
+               {
+                  "description":"tests",
+                  "pluginKey":"com.atlassian.bamboo.plugins.maven:task.builder.mvn3",
+                  "isEnabled":true,
+                  "isFinal":false,
+                  "state":"FAILED"
+               }           
+            ],
             "staticAssessmentReports":[
                {
                   "tool":"SPOTBUGS",
