@@ -181,7 +181,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
         return buildLogFileAccessorFactory;
     }
 
-    public static Map<String, TestResultsContainer> getCachedTestResults() {
+    public static Map<String, ResultsContainer> getCachedTestResults() {
         return cachedTestResults;
     }
 
