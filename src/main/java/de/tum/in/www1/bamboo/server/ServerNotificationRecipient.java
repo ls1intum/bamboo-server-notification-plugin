@@ -1,6 +1,7 @@
 package de.tum.in.www1.bamboo.server;
 
 import com.atlassian.bamboo.build.BuildLoggerManager;
+import com.atlassian.bamboo.build.logger.BuildLogFileAccessorFactory;
 import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.notification.NotificationRecipient;
 import com.atlassian.bamboo.notification.NotificationTransport;
@@ -10,6 +11,7 @@ import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.plugin.descriptor.NotificationRecipientModuleDescriptor;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
+import com.atlassian.bamboo.storage.StorageLocationService;
 import com.atlassian.bamboo.template.TemplateRenderer;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Lists;
@@ -38,6 +40,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     private DeploymentResult deploymentResult;
     private CustomVariableContext customVariableContext;
     private static BuildLoggerManager buildLoggerManager;
+    private static BuildLogFileAccessorFactory buildLogFileAccessorFactory;
 
     // Time in seconds before removing ResultsContainer
     private static final int TESTRESULTSCONTAINER_REMOVE_TIME = 60;
@@ -134,7 +137,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     public List<NotificationTransport> getTransports()
     {
         List<NotificationTransport> list = Lists.newArrayList();
-        list.add(new ServerNotificationTransport(webhookUrl, plan, resultsSummary, deploymentResult, customVariableContext, buildLoggerManager));
+        list.add(new ServerNotificationTransport(webhookUrl, plan, resultsSummary, deploymentResult, customVariableContext, buildLoggerManager, buildLogFileAccessorFactory));
         return list;
     }
 
@@ -166,6 +169,16 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     public static BuildLoggerManager getBuildLoggerManager()
     {
         return buildLoggerManager;
+    }
+
+    public void setBuildLogFileAccessorFactory(@Nullable final BuildLogFileAccessorFactory buildLogFileAccessorFactory)
+    {
+        this.buildLogFileAccessorFactory = buildLogFileAccessorFactory;
+    }
+
+    public static BuildLogFileAccessorFactory getBuildLogFileAccessorFactory()
+    {
+        return buildLogFileAccessorFactory;
     }
 
     public static Map<String, ResultsContainer> getCachedTestResults() {

@@ -5,6 +5,10 @@ language: java
 jdk:
   - openjdk8
 
+env:
+  global:
+    - JAVA_TOOL_OPTIONS=-Dhttps.protocols=TLSv1.2
+
 branches:
   except:
   - /^v[0-9]*/

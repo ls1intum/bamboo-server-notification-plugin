@@ -6,6 +6,11 @@ import com.atlassian.bamboo.build.artifact.ArtifactLink;
 import com.atlassian.bamboo.build.artifact.ArtifactLinkDataProvider;
 import com.atlassian.bamboo.build.artifact.ArtifactLinkManager;
 import com.atlassian.bamboo.build.artifact.FileSystemArtifactLinkDataProvider;
+import com.atlassian.bamboo.build.BuildOutputLogEntry;
+import com.atlassian.bamboo.build.ErrorLogEntry;
+import com.atlassian.bamboo.build.LogEntry;
+import com.atlassian.bamboo.build.logger.BuildLogFileAccessor;
+import com.atlassian.bamboo.build.logger.BuildLogFileAccessorFactory;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.chains.ChainResultsSummary;
 import com.atlassian.bamboo.chains.ChainStageResult;
@@ -28,6 +33,7 @@ import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
 import de.tum.in.www1.bamboo.server.parser.exception.ParserException;
 import de.tum.in.www1.bamboo.server.parser.ReportParser;
+import com.google.common.collect.ImmutableList;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
@@ -36,7 +42,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.util.EntityUtils;
@@ -48,6 +53,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -57,6 +63,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
 
 public class ServerNotificationTransport implements NotificationTransport
 {
@@ -76,6 +84,8 @@ public class ServerNotificationTransport implements NotificationTransport
     private final DeploymentResult deploymentResult;
     @Nullable
     private final BuildLoggerManager buildLoggerManager;
+    @Nullable
+    private final BuildLogFileAccessorFactory buildLogFileAccessorFactory;
 
     // Will be injected by Bamboo
     private VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager");
@@ -84,12 +94,19 @@ public class ServerNotificationTransport implements NotificationTransport
     // Maximum length for the feedback text. The feedback will be truncated afterwards
     private static int FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS = 5000;
 
+    // Maximum number of lines of log per job. The last lines will be taken.
+    private static int JOB_LOG_MAX_LINES = 1000;
+
+    // We are only interested in logs coming from the build, not in logs from Bamboo
+    final List<Class<?>> logEntryTypes = ImmutableList.of(BuildOutputLogEntry.class, ErrorLogEntry.class);
+
     public ServerNotificationTransport(String webhookUrl,
                                        @Nullable ImmutablePlan plan,
                                        @Nullable ResultsSummary resultsSummary,
                                        @Nullable DeploymentResult deploymentResult,
                                        CustomVariableContext customVariableContext,
-                                       BuildLoggerManager buildLoggerManager)
+                                       BuildLoggerManager buildLoggerManager,
+                                       BuildLogFileAccessorFactory buildLogFileAccessorFactory)
     {
         this.webhookUrl = customVariableContext.substituteString(webhookUrl);
         this.plan = plan;
@@ -97,6 +114,7 @@ public class ServerNotificationTransport implements NotificationTransport
         this.deploymentResult = deploymentResult;
         this.buildLoggerManager = buildLoggerManager;
         this.reportParser = new ReportParser();
+        this.buildLogFileAccessorFactory = buildLogFileAccessorFactory;
 
         URI uri;
         try
@@ -270,7 +288,6 @@ public class ServerNotificationTransport implements NotificationTransport
                     JSONArray jobs = new JSONArray();
                     for (ChainStageResult chainStageResult : chainResultsSummary.getStageResults()) {
                         for (BuildResultsSummary buildResultsSummary : chainStageResult.getBuildResults()) {
-
                             JSONObject jobDetails = new JSONObject();
 
                             jobDetails.put("id", buildResultsSummary.getId());
@@ -296,6 +313,27 @@ public class ServerNotificationTransport implements NotificationTransport
                             logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
                             JSONArray staticAssessmentReports = createStaticAssessmentReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
                             jobDetails.put("staticAssessmentReports", staticAssessmentReports);
+
+
+                            List<LogEntry> logEntries = Collections.emptyList();
+
+                            // Only add log if no tests are found (indicates a build error)
+                            if (testResultsSummary.getTotalTestCaseCount() == 0) {
+                                // Loading logs for job
+                                try {
+                                    final BuildLogFileAccessor fileAccessor = this.buildLogFileAccessorFactory.createBuildLogFileAccessor(buildResultsSummary.getPlanResultKey());
+                                    logEntries = fileAccessor.getLastNLogsOfType(JOB_LOG_MAX_LINES, logEntryTypes);
+                                    logToBuildLog("Found: " + logEntries.size() + " LogEntries");
+                                } catch (IOException ex) {
+                                    logErrorToBuildLog("Error while loading build log: " + ex.getMessage());
+                                }
+                            }
+                            JSONArray logEntriesArray = new JSONArray();
+                            for (LogEntry logEntry : logEntries) {
+                                // A lambda here would require us to catch the JSONException inside the lambda, so we use a loop.
+                                logEntriesArray.put(createLogEntryJSONObject(logEntry));
+                            }
+                            jobDetails.put("logs", logEntriesArray); // We add an empty array here in case tests are found to prevent errors while parsing in the client
 
                             jobs.put(jobDetails);
                         }
@@ -437,6 +475,14 @@ public class ServerNotificationTransport implements NotificationTransport
             tasksArray.put(taskJSON);
         }
         return tasksArray;
+    }
+
+    private JSONObject createLogEntryJSONObject(LogEntry logEntry) throws JSONException {
+        JSONObject logEntryObject = new JSONObject();
+        logEntryObject.put("log", logEntry.getLog());
+        logEntryObject.put("date", logEntry.getDate());
+
+        return logEntryObject;
     }
 
     private void logToBuildLog(String s) {
