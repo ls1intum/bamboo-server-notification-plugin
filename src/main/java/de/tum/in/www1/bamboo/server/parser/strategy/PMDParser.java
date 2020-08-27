@@ -49,7 +49,8 @@ public class PMDParser implements ParserStrategy {
                 issue.setEndLine(ParserUtils.extractInt(violationElement, VIOLATION_ATT_ENDLINE));
                 issue.setStartColumn(ParserUtils.extractInt(violationElement, VIOLATION_ATT_BEGINCOLUMN));
                 issue.setEndColumn(ParserUtils.extractInt(violationElement, VIOLATION_ATT_ENDCOLUMN));
-                issue.setMessage(violationElement.getValue());
+                // Strip new lines and whitespace from the text element
+                issue.setMessage(violationElement.getValue().replaceAll("(\\r|\\n)", "").trim());
 
                 issues.add(issue);
             }
