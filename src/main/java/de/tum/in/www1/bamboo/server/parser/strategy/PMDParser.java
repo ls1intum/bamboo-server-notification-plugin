@@ -32,7 +32,7 @@ public class PMDParser implements ParserStrategy {
         Element root = doc.getRootElement();
 
         // Iterate over all <file> elements
-        for (Element fileElement : root.getChildElements(FILE_TAG)) {
+        for (Element fileElement : root.getChildElements(FILE_TAG, root.getNamespaceURI())) {
             // Extract the file path but use this only as a fallback more specific information is available
             String fileName = fileElement.getAttributeValue(FILE_ATT_NAME);
             String packageFromFileName = ParserUtils.transformPathToFullyQualifiedClassName(fileName);
@@ -49,6 +49,7 @@ public class PMDParser implements ParserStrategy {
                 issue.setEndLine(ParserUtils.extractInt(violationElement, VIOLATION_ATT_ENDLINE));
                 issue.setStartColumn(ParserUtils.extractInt(violationElement, VIOLATION_ATT_BEGINCOLUMN));
                 issue.setEndColumn(ParserUtils.extractInt(violationElement, VIOLATION_ATT_ENDCOLUMN));
+                issue.setMessage(violationElement.getValue());
 
                 issues.add(issue);
             }
