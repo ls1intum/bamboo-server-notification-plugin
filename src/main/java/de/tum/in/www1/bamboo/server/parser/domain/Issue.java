@@ -5,16 +5,6 @@ public class Issue {
     // Path of to the source file using unix file separators
     private String file;
 
-    private String rule;
-
-    // TODO: This is currently not used in Artemis but could be useful for further filtering.
-    // Map tool specific codes to a common format
-    private String priority;
-
-    private String category;
-
-    private String message;
-
     private Integer startLine;
 
     private Integer endLine;
@@ -22,6 +12,16 @@ public class Issue {
     private Integer startColumn;
 
     private Integer endColumn;
+
+    private String rule;
+
+    private String category;
+
+    private String message;
+
+    // TODO: This is currently not used in Artemis but could be useful for further filtering.
+    // Map tool specific codes to a common format
+    private String priority;
 
     public Issue() {
     }
@@ -31,43 +31,11 @@ public class Issue {
     }
 
     public String getFile() {
-        return this.file;
+        return file;
     }
 
     public void setFile(String file) {
         this.file = file;
-    }
-
-    public String getRule() {
-        return rule;
-    }
-
-    public void setRule(String rule) {
-        this.rule = rule;
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-
-    public void setPriority(String priority) {
-        this.priority = priority;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     public Integer getStartLine() {
@@ -100,5 +68,37 @@ public class Issue {
 
     public void setEndColumn(Integer endColumn) {
         this.endColumn = endColumn;
+    }
+
+    public String getRule() {
+        return rule;
+    }
+
+    public void setRule(String rule) {
+        this.rule = rule;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
 }
