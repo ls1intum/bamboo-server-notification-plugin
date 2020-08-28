@@ -45,7 +45,7 @@ public class CheckstyleParser implements ParserStrategy {
                 issue.setPriority(errorElement.getAttributeValue(ERROR_ATT_SEVERITY));
                 issue.setMessage(errorElement.getAttributeValue(ERROR_ATT_MESSAGE));
                 issue.setStartLine(ParserUtils.extractInt(errorElement, ERROR_ATT_LINENUMBER));
-                issue.setEndColumn(ParserUtils.extractInt(errorElement, ERROR_ATT_COLUMN));
+                issue.setStartColumn(ParserUtils.extractInt(errorElement, ERROR_ATT_COLUMN));
 
                 issues.add(issue);
             }
