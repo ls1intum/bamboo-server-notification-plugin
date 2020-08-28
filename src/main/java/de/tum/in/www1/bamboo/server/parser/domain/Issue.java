@@ -2,9 +2,10 @@ package de.tum.in.www1.bamboo.server.parser.domain;
 
 public class Issue {
 
-    private String classname;
+    // Path of to the source file using unix file separators
+    private String file;
 
-    private String type;
+    private String rule;
 
     // TODO: This is currently not used in Artemis but could be useful for further filtering.
     // Map tool specific codes to a common format
@@ -25,24 +26,24 @@ public class Issue {
     public Issue() {
     }
 
-    public Issue(String classname) {
-        this.classname = classname;
+    public Issue(String file) {
+        this.file = file;
     }
 
-    public String getClassname() {
-        return classname;
+    public String getFile() {
+        return this.file;
     }
 
-    public void setClassname(String classname) {
-        this.classname = classname;
+    public void setFile(String file) {
+        this.file = file;
     }
 
-    public String getType() {
-        return type;
+    public String getRule() {
+        return rule;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setRule(String rule) {
+        this.rule = rule;
     }
 
     public String getPriority() {

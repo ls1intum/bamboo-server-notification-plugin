@@ -19,7 +19,10 @@ public class CheckstyleParser implements ParserStrategy {
     private static final String ERROR_ATT_MESSAGE = "message";
     private static final String ERROR_ATT_LINENUMBER = "line";
     private static final String ERROR_ATT_COLUMN = "column";
+
+    // The packages rooted at checks denote the category and rule
     private static final String CATEGORY_DELIMITER = "checks";
+    // Some rules don't belong to a category. We group them under this identifier.
     private static final String CATEGORY_MISCELLANEOUS = "miscellaneous";
 
     @Override
@@ -30,12 +33,11 @@ public class CheckstyleParser implements ParserStrategy {
 
         // Iterate over all <file> elements
         for (Element fileElement : root.getChildElements(FILE_TAG)) {
-            String filePath = fileElement.getAttributeValue(FILE_ATT_NAME);
-            String className = ParserUtils.transformPathToFullyQualifiedClassName(filePath);
+            String file = ParserUtils.shortenAndTransformToUnixPath(fileElement.getAttributeValue(FILE_ATT_NAME));
 
             // Iterate over all <error> elements
             for (Element errorElement : fileElement.getChildElements()) {
-                Issue issue = new Issue(className);
+                Issue issue = new Issue(file);
 
                 String errorSource = errorElement.getAttributeValue(ERROR_ATT_SOURCE);
                 extractRuleAndCategory(issue, errorSource);
@@ -70,14 +72,14 @@ public class CheckstyleParser implements ParserStrategy {
             issue.setCategory(errorSource);
             return;
         }
-        String type = errorSourceSegments[noOfSegments - 1];
+        String rule = errorSourceSegments[noOfSegments - 1];
         String category = errorSourceSegments[noOfSegments - 2];
 
         // Check if the rule has a category
         if (category.equals(CATEGORY_DELIMITER)) {
             category = CATEGORY_MISCELLANEOUS;
         }
-        issue.setType(type);
+        issue.setRule(rule);
         issue.setCategory(category);
     }
 }

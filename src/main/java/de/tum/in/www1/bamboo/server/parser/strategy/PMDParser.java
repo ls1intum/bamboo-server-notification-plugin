@@ -8,7 +8,6 @@ import nu.xom.Element;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class PMDParser implements ParserStrategy {
 
@@ -33,46 +32,27 @@ public class PMDParser implements ParserStrategy {
 
         // Iterate over all <file> elements
         for (Element fileElement : root.getChildElements(FILE_TAG, root.getNamespaceURI())) {
-            // Extract the file path but use this only as a fallback more specific information is available
-            String fileName = fileElement.getAttributeValue(FILE_ATT_NAME);
-            String packageFromFileName = ParserUtils.transformPathToFullyQualifiedClassName(fileName);
+            // Extract the file path
+            String filePath = fileElement.getAttributeValue(FILE_ATT_NAME);
+            String shortenedPath = ParserUtils.shortenAndTransformToUnixPath(filePath);
 
             // Iterate over all <violation> elements
             for (Element violationElement : fileElement.getChildElements()) {
-                Issue issue = new Issue();
+                Issue issue = new Issue(shortenedPath);
 
-                issue.setClassname(buildFullyQualifiedClassName(violationElement).orElse(packageFromFileName));
-                issue.setType(violationElement.getAttributeValue(VIOLATION_ATT_RULE));
+                issue.setRule(violationElement.getAttributeValue(VIOLATION_ATT_RULE));
                 issue.setCategory(violationElement.getAttributeValue(VIOLATION_ATT_RULESET));
                 issue.setPriority(violationElement.getAttributeValue(VIOLATION_ATT_PRIORITY));
                 issue.setStartLine(ParserUtils.extractInt(violationElement, VIOLATION_ATT_BEGINLINE));
                 issue.setEndLine(ParserUtils.extractInt(violationElement, VIOLATION_ATT_ENDLINE));
                 issue.setStartColumn(ParserUtils.extractInt(violationElement, VIOLATION_ATT_BEGINCOLUMN));
                 issue.setEndColumn(ParserUtils.extractInt(violationElement, VIOLATION_ATT_ENDCOLUMN));
-                // Strip new lines and whitespace from the text element
-                issue.setMessage(violationElement.getValue().replaceAll("(\\r|\\n)", "").trim());
+                issue.setMessage(ParserUtils.stripNewLinesAndWhitespace(violationElement.getValue()));
 
                 issues.add(issue);
             }
         }
         report.setIssues(issues);
         return report;
-    }
-
-    /**
-     * Build the fully qualified class name using the package and class attribute values.
-     * As the XSD defines those attributes as optional, an empty optional is returned if one attribute does not exist.
-     *
-     * @param violationElement Violation element of the PMD report
-     * @return Optional containing the fully qualified class name. Empty if package or class attribute doesn't exist
-     */
-    private Optional<String> buildFullyQualifiedClassName(Element violationElement) {
-        String className = violationElement.getAttributeValue(VIOLATION_ATT_CLASS);
-        String packageName = violationElement.getAttributeValue(VIOLATION_ATT_PACKAGE);
-        if (className == null || packageName == null) {
-            return Optional.empty();
-        } else {
-            return Optional.of(packageName + "." + className);
-        }
     }
 }
