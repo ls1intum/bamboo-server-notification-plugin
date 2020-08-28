@@ -1,5 +1,8 @@
 package de.tum.in.www1.bamboo.server.parser.domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Issue {
 
     // Path of to the source file using unix file separators
