@@ -199,7 +199,7 @@ Sample request
                   "state":"FAILED"
                }           
             ],
-            "staticAssessmentReports":[
+            "staticCodeAnalysisReports":[
                {
                   "tool":"SPOTBUGS",
                   "issues":[
@@ -243,7 +243,6 @@ Sample request
                      }
                   ]
                }
-           
             ],
             "logs": [
                {

@@ -311,8 +311,8 @@ public class ServerNotificationTransport implements NotificationTransport
                                 logErrorToBuildLog("Could not load cached test results!");
                             }
                             logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
-                            JSONArray staticAssessmentReports = createStaticAssessmentReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
-                            jobDetails.put("staticAssessmentReports", staticAssessmentReports);
+                            JSONArray staticAssessmentReports = createStaticCodeAnalysisReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
+                            jobDetails.put("staticCodeAnalysisReports", staticAssessmentReports);
 
 
                             List<LogEntry> logEntries = Collections.emptyList();
@@ -356,7 +356,7 @@ public class ServerNotificationTransport implements NotificationTransport
         return jsonObject;
     }
 
-    private Optional<JSONObject> createStaticAssessmentJSONObject(File rootFile, String label) {
+    private Optional<JSONObject> createStaticCodeAnalysisReportJSONObject(File rootFile, String label) {
         /*
          * The rootFile is a directory if the copy pattern matches multiple files, otherwise it is a regular file.
          * Ignore artifact definitions matching multiple files.
@@ -380,7 +380,7 @@ public class ServerNotificationTransport implements NotificationTransport
         return Optional.empty();
     }
 
-    private JSONArray createStaticAssessmentReportArray(Collection<ArtifactLink> artifactLinks, long jobId) {
+    private JSONArray createStaticCodeAnalysisReportArray(Collection<ArtifactLink> artifactLinks, long jobId) {
         JSONArray artifactsArray = new JSONArray();
         Collection<JSONObject> artifactJSONObjects = new ArrayList<>();
         // ArtifactLink refers to a single artifact definition configured on job level
@@ -407,7 +407,7 @@ public class ServerNotificationTransport implements NotificationTransport
             if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
                 // TODO: Identify report in a more generic way
-                Optional<JSONObject> optionalReport = createStaticAssessmentJSONObject(fileDataProvider.getFile(), artifact.getLabel());
+                Optional<JSONObject> optionalReport = createStaticCodeAnalysisReportJSONObject(fileDataProvider.getFile(), artifact.getLabel());
                 optionalReport.ifPresent(artifactJSONObjects::add);
             } else {
                 log.debug("Unsupported ArtifactLinkDataProvider " + dataProvider.getClass().getSimpleName()
