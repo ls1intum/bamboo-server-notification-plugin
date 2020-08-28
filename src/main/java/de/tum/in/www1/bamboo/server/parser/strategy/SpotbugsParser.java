@@ -2,7 +2,7 @@ package de.tum.in.www1.bamboo.server.parser.strategy;
 
 import de.tum.in.www1.bamboo.server.parser.domain.Issue;
 import de.tum.in.www1.bamboo.server.parser.domain.Report;
-import de.tum.in.www1.bamboo.server.parser.domain.StaticAssessmentTool;
+import de.tum.in.www1.bamboo.server.parser.domain.StaticCodeAnalysisTool;
 import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.Elements;
@@ -23,7 +23,7 @@ public class SpotbugsParser implements ParserStrategy {
 
     @Override
     public Report parse(Document doc) {
-        Report report = new Report(StaticAssessmentTool.SPOTBUGS);
+        Report report = new Report(StaticCodeAnalysisTool.SPOTBUGS);
         List<Issue> issues = new ArrayList<>();
         // Element BugCollection
         Element root = doc.getRootElement();

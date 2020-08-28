@@ -311,8 +311,8 @@ public class ServerNotificationTransport implements NotificationTransport
                                 logErrorToBuildLog("Could not load cached test results!");
                             }
                             logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
-                            JSONArray staticAssessmentReports = createStaticCodeAnalysisReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
-                            jobDetails.put("staticCodeAnalysisReports", staticAssessmentReports);
+                            JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
+                            jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
 
 
                             List<LogEntry> logEntries = Collections.emptyList();

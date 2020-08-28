@@ -2,7 +2,7 @@ package de.tum.in.www1.bamboo.server.parser.strategy;
 
 import de.tum.in.www1.bamboo.server.parser.domain.Issue;
 import de.tum.in.www1.bamboo.server.parser.domain.Report;
-import de.tum.in.www1.bamboo.server.parser.domain.StaticAssessmentTool;
+import de.tum.in.www1.bamboo.server.parser.domain.StaticCodeAnalysisTool;
 import nu.xom.Document;
 import nu.xom.Element;
 
@@ -26,7 +26,7 @@ public class PMDParser implements ParserStrategy {
 
     @Override
     public Report parse(Document doc) {
-        Report report = new Report(StaticAssessmentTool.PMD);
+        Report report = new Report(StaticCodeAnalysisTool.PMD);
         List<Issue> issues = new ArrayList<>();
         Element root = doc.getRootElement();
 
