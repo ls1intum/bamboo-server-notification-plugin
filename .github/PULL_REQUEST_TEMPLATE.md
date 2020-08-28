@@ -2,7 +2,7 @@
 <!-- If your pull request is not ready for review yet, create a draft pull request! -->
 
 ### Checklist
-- [ ] I built and deployed the plugin locally and tested *all* changes and *all* related features with different users (student, tutor, instructor, admin) locally.
+- [ ] I built and deployed the plugin locally and tested *all* changes and *all* related features.
 - [ ] I documented the Java code using JavaDoc style.
 
 ### Motivation and Context
