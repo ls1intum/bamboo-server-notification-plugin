@@ -206,6 +206,7 @@ Sample request
                      {
                          "file":"com/ls1/staticCodeAnalysis/App.java",
                          "startLine":16,
+                         "endLine":16,
                          "rule":"ES_COMPARING_PARAMETER_STRING_WITH_EQ",
                          "category":"BAD_PRACTICE",
                          "message":"Comparison of String parameter using == or != in com.stefan.staticCodeAnalysis.App.equalString(String)",
@@ -219,7 +220,9 @@ Sample request
                      {
                          "file":"com/ls1/staticCodeAnalysis/App.java",
                          "startLine":7,
+                         "endLine":7,
                          "startColumn":1,
+                         "endColumn":1,
                          "rule":"HideUtilityClassConstructorCheck",
                          "category":"design",
                          "message":"Utility classes should not have a public or default constructor.",

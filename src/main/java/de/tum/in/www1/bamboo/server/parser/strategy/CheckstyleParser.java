@@ -43,8 +43,16 @@ public class CheckstyleParser implements ParserStrategy {
 
                 issue.setPriority(errorElement.getAttributeValue(ERROR_ATT_SEVERITY));
                 issue.setMessage(errorElement.getAttributeValue(ERROR_ATT_MESSAGE));
-                issue.setStartLine(ParserUtils.extractInt(errorElement, ERROR_ATT_LINENUMBER));
-                issue.setStartColumn(ParserUtils.extractInt(errorElement, ERROR_ATT_COLUMN));
+
+                // Set startLine as endLine as Checkstyle does not support an end line
+                int startLine = ParserUtils.extractInt(errorElement, ERROR_ATT_LINENUMBER);
+                issue.setStartLine(startLine);
+                issue.setEndLine(startLine);
+
+                // Set startColumn as endColumn as Checkstyle does not support an end column
+                int startColumn = ParserUtils.extractInt(errorElement, ERROR_ATT_COLUMN);
+                issue.setStartColumn(startColumn);
+                issue.setEndColumn(startColumn);
 
                 issues.add(issue);
             }

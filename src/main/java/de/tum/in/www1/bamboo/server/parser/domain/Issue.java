@@ -10,8 +10,8 @@ public class Issue {
 
     /**
      * Usage of line and column attributes by tools:
-     * Spotbugs -> startLine
-     * Checkstyle -> startLine, startColumn
+     * Spotbugs -> startLine, endLine (duplicated startLine)
+     * Checkstyle -> startLine, endLine (duplicated startLine), startColumn, endColumn (duplicated startColumn)
      * PMD -> startLine, endLine, startColumn, endColumn
      */
     private Integer startLine;
