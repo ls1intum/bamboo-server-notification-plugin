@@ -5,9 +5,15 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Issue {
 
-    // Path of to the source file using unix file separators
+    // Path to the source file with unix file separators
     private String file;
 
+    /**
+     * Usage of line and column attributes by tools:
+     * Spotbugs -> startLine
+     * Checkstyle -> startLine, startColumn
+     * PMD -> startLine, endLine, startColumn, endColumn
+     */
     private Integer startLine;
 
     private Integer endLine;
