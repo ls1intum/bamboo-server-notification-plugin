@@ -204,7 +204,7 @@ Sample request
                   "tool":"SPOTBUGS",
                   "issues":[
                      {
-                         "file":"com/ls1/staticCodeAnalysis/App.java",
+                         "filePath":"com/ls1/staticCodeAnalysis/App.java",
                          "startLine":16,
                          "endLine":16,
                          "rule":"ES_COMPARING_PARAMETER_STRING_WITH_EQ",
@@ -218,7 +218,7 @@ Sample request
                   "tool":"CHECKSTYLE",
                   "issues":[
                      {
-                         "file":"com/ls1/staticCodeAnalysis/App.java",
+                         "filePath":"com/ls1/staticCodeAnalysis/App.java",
                          "startLine":7,
                          "endLine":7,
                          "startColumn":1,
@@ -234,7 +234,7 @@ Sample request
                   "tool":"PMD",
                   "issues":[
                      {
-                         "file":"com/ls1/staticCodeAnalysis/App.java",
+                         "filePath":"com/ls1/staticCodeAnalysis/App.java",
                          "startLine":10,
                          "endLine":10,
                          "startColumn":16,

@@ -42,7 +42,7 @@ public class SpotbugsParser implements ParserStrategy {
             if (sourceLines.size() > 0) {
                 Element sourceLine = sourceLines.get(0);
                 // The sourcePath begins with the package name so we don't need to shorten it
-                issue.setFile(ParserUtils.transformToUnixPath(sourceLine.getAttributeValue(SOURCELINE_ATT_SOURCEPATH)));
+                issue.setFilePath(ParserUtils.transformToUnixPath(sourceLine.getAttributeValue(SOURCELINE_ATT_SOURCEPATH)));
                 // Set endLine by duplicating the startLine. Spotbugs does not support a endLine
                 int startLine = ParserUtils.extractInt(sourceLine, SOURCELINE_ATT_START);
                 issue.setStartLine(startLine);

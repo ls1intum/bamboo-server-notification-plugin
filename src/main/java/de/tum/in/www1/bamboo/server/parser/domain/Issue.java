@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public class Issue {
 
     // Path to the source file with unix file separators
-    private String file;
+    private String filePath;
 
     /**
      * Usage of line and column attributes by tools:
@@ -35,16 +35,16 @@ public class Issue {
     public Issue() {
     }
 
-    public Issue(String file) {
-        this.file = file;
+    public Issue(String filePath) {
+        this.filePath = filePath;
     }
 
-    public String getFile() {
-        return file;
+    public String getFilePath() {
+        return filePath;
     }
 
-    public void setFile(String file) {
-        this.file = file;
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
     public Integer getStartLine() {
