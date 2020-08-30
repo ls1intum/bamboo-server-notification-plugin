@@ -26,33 +26,28 @@ public class ParserUtils {
     }
 
     /**
-     * Shorten the path to start after the source directory, which is assumed to be '/assignment/src/'.
-     * Returns the path using unix file separators.
-     * If '/assignment/src/' is not found, the whole path will be returned.
+     * Transforms operating system dependent file separators in a path to unix file separators
      *
-     * @param path Absolute path like C:\BambooTest\assignment\src\com\abc\staticCodeAnalysis\App.java
-     * @return path like com/abc/staticCodeAnalysis/App.java]
+     * @param path String representation of a path to be transformed
+     * @return path with unix file separators
      */
-    public static String shortenAndTransformToUnixPath(String path) {
+    public static String transformToUnixPath(String path) {
         if (path == null || path.isEmpty()) {
             return path;
         }
-        String packageDelimiter = File.separator + "assignment" + File.separator + "src" + File.separator;
-        int indexOfSrc = path.indexOf(packageDelimiter);
-
-        // Fallback: Return the whole path if no assignment/src segment exists
-        if (indexOfSrc == -1) {
-            return transformToUnixPath(path);
-        }
-        return transformToUnixPath(path.substring(indexOfSrc + packageDelimiter.length()));
-    }
-
-    public static String transformToUnixPath(String path) {
-        String fileDelimiterRegex = Pattern.quote(File.separator);
         return path.replace(File.separator, "/");
     }
 
+    /**
+     * Strips new lines and trailing or leading whitespaces in a String
+     *
+     * @param text to strip
+     * @return striped text
+     */
     public static String stripNewLinesAndWhitespace(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
         return text.replaceAll("(\\r|\\n)", "").trim();
     }
 }

@@ -33,12 +33,11 @@ public class PMDParser implements ParserStrategy {
         // Iterate over all <file> elements
         for (Element fileElement : root.getChildElements(FILE_TAG, root.getNamespaceURI())) {
             // Extract the file path
-            String filePath = fileElement.getAttributeValue(FILE_ATT_NAME);
-            String shortenedPath = ParserUtils.shortenAndTransformToUnixPath(filePath);
+            String unixPath = ParserUtils.transformToUnixPath(fileElement.getAttributeValue(FILE_ATT_NAME));
 
             // Iterate over all <violation> elements
             for (Element violationElement : fileElement.getChildElements()) {
-                Issue issue = new Issue(shortenedPath);
+                Issue issue = new Issue(unixPath);
 
                 issue.setRule(violationElement.getAttributeValue(VIOLATION_ATT_RULE));
                 issue.setCategory(violationElement.getAttributeValue(VIOLATION_ATT_RULESET));

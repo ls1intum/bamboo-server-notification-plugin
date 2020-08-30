@@ -32,11 +32,11 @@ public class CheckstyleParser implements ParserStrategy {
 
         // Iterate over all <file> elements
         for (Element fileElement : root.getChildElements(FILE_TAG)) {
-            String file = ParserUtils.shortenAndTransformToUnixPath(fileElement.getAttributeValue(FILE_ATT_NAME));
+            String unixPath = ParserUtils.transformToUnixPath(fileElement.getAttributeValue(FILE_ATT_NAME));
 
             // Iterate over all <error> elements
             for (Element errorElement : fileElement.getChildElements()) {
-                Issue issue = new Issue(file);
+                Issue issue = new Issue(unixPath);
 
                 String errorSource = errorElement.getAttributeValue(ERROR_ATT_SOURCE);
                 extractRuleAndCategory(issue, errorSource);
