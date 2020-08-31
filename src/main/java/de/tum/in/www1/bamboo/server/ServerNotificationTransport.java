@@ -311,8 +311,8 @@ public class ServerNotificationTransport implements NotificationTransport
                                 logErrorToBuildLog("Could not load cached test results!");
                             }
                             logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
-                            JSONArray staticAssessmentReports = createStaticAssessmentReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
-                            jobDetails.put("staticAssessmentReports", staticAssessmentReports);
+                            JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
+                            jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
 
 
                             List<LogEntry> logEntries = Collections.emptyList();
@@ -356,7 +356,7 @@ public class ServerNotificationTransport implements NotificationTransport
         return jsonObject;
     }
 
-    private Optional<JSONObject> createStaticAssessmentJSONObject(File rootFile, String label) {
+    private Optional<JSONObject> createStaticCodeAnalysisReportJSONObject(File rootFile, String label) {
         /*
          * The rootFile is a directory if the copy pattern matches multiple files, otherwise it is a regular file.
          * Ignore artifact definitions matching multiple files.
@@ -369,7 +369,7 @@ public class ServerNotificationTransport implements NotificationTransport
         try {
             logToBuildLog("Creating artifact JSON object for artifact definition: " + label);
             String reportJSON = reportParser.transformToJSONReport(rootFile, label);
-            return Optional.ofNullable(new JSONObject(reportJSON));
+            return Optional.of(new JSONObject(reportJSON));
         } catch (JSONException e) {
             log.error("Error constructing artifact JSON for artifact definition " + label, e);
             logErrorToBuildLog("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage());
@@ -380,7 +380,7 @@ public class ServerNotificationTransport implements NotificationTransport
         return Optional.empty();
     }
 
-    private JSONArray createStaticAssessmentReportArray(Collection<ArtifactLink> artifactLinks, long jobId) {
+    private JSONArray createStaticCodeAnalysisReportArray(Collection<ArtifactLink> artifactLinks, long jobId) {
         JSONArray artifactsArray = new JSONArray();
         Collection<JSONObject> artifactJSONObjects = new ArrayList<>();
         // ArtifactLink refers to a single artifact definition configured on job level
@@ -407,10 +407,8 @@ public class ServerNotificationTransport implements NotificationTransport
             if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
                 // TODO: Identify report in a more generic way
-                Optional<JSONObject> optionalReport = createStaticAssessmentJSONObject(fileDataProvider.getFile(), artifact.getLabel());
-                if (optionalReport.isPresent()) {
-                    artifactJSONObjects.add(optionalReport.get());
-                }
+                Optional<JSONObject> optionalReport = createStaticCodeAnalysisReportJSONObject(fileDataProvider.getFile(), artifact.getLabel());
+                optionalReport.ifPresent(artifactJSONObjects::add);
             } else {
                 log.debug("Unsupported ArtifactLinkDataProvider " + dataProvider.getClass().getSimpleName()
                         + " encountered for label" + artifact.getLabel() + " in job " + jobId);
@@ -418,7 +416,7 @@ public class ServerNotificationTransport implements NotificationTransport
                         + artifact.getLabel() + " in job " + jobId);
             }
         }
-        artifactJSONObjects.stream().forEach(artifactsArray::put);
+        artifactJSONObjects.forEach(artifactsArray::put);
         return artifactsArray;
     }
 
@@ -460,7 +458,7 @@ public class ServerNotificationTransport implements NotificationTransport
      *
      * @param taskResults Collection of all defined tasks with details
      * @return JSONArray containing the name and state
-     * @throws JSONException
+     * @throws JSONException if JSONObject can't be created
      */
     private JSONArray createTasksJSONArray(Collection<TaskResult> taskResults) throws JSONException {
         logToBuildLog("Creating tasks JSON array");
@@ -488,18 +486,14 @@ public class ServerNotificationTransport implements NotificationTransport
     private void logToBuildLog(String s) {
         if (buildLoggerManager != null && plan != null) {
             BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
-            if (buildLogger != null) {
-                buildLogger.addBuildLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
-            }
+            buildLogger.addBuildLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
         }
     }
 
     private void logErrorToBuildLog(String s) {
         if (buildLoggerManager != null && plan != null) {
             BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
-            if (buildLogger != null) {
-                buildLogger.addErrorLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
-            }
+            buildLogger.addErrorLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
         }
     }
 }

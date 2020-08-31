@@ -199,17 +199,50 @@ Sample request
                   "state":"FAILED"
                }           
             ],
-            "staticAssessmentReports":[
+            "staticCodeAnalysisReports":[
                {
                   "tool":"SPOTBUGS",
                   "issues":[
                      {
-                         "classname":"com.stefan.staticCodeAnalysis.App",
-                         "type":"ES_COMPARING_PARAMETER_STRING_WITH_EQ",
-                         "priority":"High",
+                         "filePath":"/buildDir/testExercise/assignment/src/com/ls1/staticCodeAnalysis/App.java",
+                         "startLine":16,
+                         "endLine":16,
+                         "rule":"ES_COMPARING_PARAMETER_STRING_WITH_EQ",
                          "category":"BAD_PRACTICE",
                          "message":"Comparison of String parameter using == or != in com.stefan.staticCodeAnalysis.App.equalString(String)",
-                         "line":16
+                         "priority":"1"
+                     }
+                  ]
+               },
+               {
+                  "tool":"CHECKSTYLE",
+                  "issues":[
+                     {
+                         "filePath":"/buildDir/testExercise/assignment/src/com/ls1/staticCodeAnalysis/App.java",
+                         "startLine":7,
+                         "endLine":7,
+                         "startColumn":1,
+                         "endColumn":1,
+                         "rule":"HideUtilityClassConstructorCheck",
+                         "category":"design",
+                         "message":"Utility classes should not have a public or default constructor.",
+                         "priority":"error"
+                     }
+                  ]
+               },
+               {
+                  "tool":"PMD",
+                  "issues":[
+                     {
+                         "filePath":"/buildDir/testExercise/assignment/src/com/ls1/staticCodeAnalysis/App.java",
+                         "startLine":10,
+                         "endLine":10,
+                         "startColumn":16,
+                         "endColumn":16,
+                         "rule":"UnusedLocalVariable",
+                         "category":"Best Practices",
+                         "message":"Avoid unused local variables such as 'b'.",
+                         "priority":"3"
                      }
                   ]
                }

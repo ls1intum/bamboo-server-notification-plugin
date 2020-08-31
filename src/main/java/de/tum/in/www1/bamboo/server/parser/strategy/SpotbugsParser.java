@@ -2,51 +2,63 @@ package de.tum.in.www1.bamboo.server.parser.strategy;
 
 import de.tum.in.www1.bamboo.server.parser.domain.Issue;
 import de.tum.in.www1.bamboo.server.parser.domain.Report;
-import de.tum.in.www1.bamboo.server.parser.domain.StaticAssessmentTool;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
+import de.tum.in.www1.bamboo.server.parser.domain.StaticCodeAnalysisTool;
+import nu.xom.Document;
+import nu.xom.Element;
+import nu.xom.Elements;
 
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: Use XOM, JDOM, DOM4J instead of DOM (for Collection support)
 public class SpotbugsParser implements ParserStrategy {
 
-    private static final String FILE_TAG = "file";
-    private static final String FILE_ATT_CLASSNAME = "classname";
+    private static final String BUGINSTANCE_ELEMENT = "BugInstance";
     private static final String BUGINSTANCE_ATT_TYPE = "type";
-    private static final String BUGINSTANCE_ATT_PRIORITY = "priority";
     private static final String BUGINSTANCE_ATT_CATEGORY = "category";
-    private static final String BUGINSTANCE_ATT_MESSAGE = "message";
-    private static final String BUGINSTANCE_ATT_LINENUMBER = "lineNumber";
+    private static final String BUGINSTANCE_ATT_PRIORITY = "priority";
+    private static final String SOURCELINE_ELEMENT = "SourceLine";
+    private static final String SOURCELINE_ATT_SOURCEPATH = "sourcepath";
+    private static final String SOURCELINE_ATT_START = "start";
+    private static final String LONGMESSAGE_ELEMENT = "LongMessage";
 
     @Override
     public Report parse(Document doc) {
-        Report report = new Report(StaticAssessmentTool.SPOTBUGS);
+        Report report = new Report(StaticCodeAnalysisTool.SPOTBUGS);
         List<Issue> issues = new ArrayList<>();
-        NodeList fileNodes = doc.getElementsByTagName(FILE_TAG);
+        // Element BugCollection
+        Element root = doc.getRootElement();
 
-        for (int i = 0; i < fileNodes.getLength(); i++) {
-            Node fileNode = fileNodes.item(i);
-            NamedNodeMap fileAttributes = fileNode.getAttributes();
-            String classname = fileAttributes.getNamedItem(FILE_ATT_CLASSNAME).getNodeValue();
-            NodeList bugInstances = fileNode.getChildNodes();
+        // Iterate over <BugInstance> elements
+        for (Element bugInstance : root.getChildElements(BUGINSTANCE_ELEMENT)) {
+            Issue issue = new Issue();
 
-            for (int j = 0; j < bugInstances.getLength(); j++) {
-                Node bugInstance = bugInstances.item(j);
-                NamedNodeMap bugInstanceAttributes = bugInstance.getAttributes();
-                String type = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_TYPE).getNodeValue();
-                String priority = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_PRIORITY).getNodeValue();
-                String category = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_CATEGORY).getNodeValue();
-                String message = bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_MESSAGE).getNodeValue();
-                Integer line = Integer.parseInt(bugInstanceAttributes.getNamedItem(BUGINSTANCE_ATT_LINENUMBER).getNodeValue());
-                issues.add(new Issue(classname, type, priority, category, message, line));
+            // Extract bugInstance attributes
+            issue.setRule(bugInstance.getAttributeValue(BUGINSTANCE_ATT_TYPE));
+            issue.setCategory(bugInstance.getAttributeValue(BUGINSTANCE_ATT_CATEGORY));
+            issue.setPriority(bugInstance.getAttributeValue(BUGINSTANCE_ATT_PRIORITY));
+
+            // Extract information out of <SourceLine>
+            Elements sourceLines = bugInstance.getChildElements(SOURCELINE_ELEMENT);
+            if (sourceLines.size() > 0) {
+                Element sourceLine = sourceLines.get(0);
+                // The sourcePath begins with the package name so we don't need to shorten it
+                String unixPath = ParserUtils.transformToUnixPath(sourceLine.getAttributeValue(SOURCELINE_ATT_SOURCEPATH));
+                issue.setFilePath(unixPath);
+                // Set endLine by duplicating the startLine. Spotbugs does not support a endLine
+                int startLine = ParserUtils.extractInt(sourceLine, SOURCELINE_ATT_START);
+                issue.setStartLine(startLine);
+                issue.setEndLine(startLine);
             }
+
+            // Extract message
+            Elements longMessages = bugInstance.getChildElements(LONGMESSAGE_ELEMENT);
+            if (longMessages.size() > 0) {
+                Element longMessage = longMessages.get(0);
+                issue.setMessage(ParserUtils.stripNewLinesAndWhitespace(longMessage.getValue()));
+            }
+            issues.add(issue);
         }
         report.setIssues(issues);
         return report;
     }
-
 }

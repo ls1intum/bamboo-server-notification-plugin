@@ -1,50 +1,90 @@
 package de.tum.in.www1.bamboo.server.parser.domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Issue {
 
-    private String classname;
+    // Path to the source file with unix file separators
+    private String filePath;
 
-    private String type;
+    /**
+     * Usage of line and column attributes by tools:
+     * Spotbugs -> startLine, endLine (duplicated startLine)
+     * Checkstyle -> startLine, endLine (duplicated startLine), startColumn, endColumn (duplicated startColumn)
+     * PMD -> startLine, endLine, startColumn, endColumn
+     */
+    private Integer startLine;
 
-    private String priority;
+    private Integer endLine;
+
+    private Integer startColumn;
+
+    private Integer endColumn;
+
+    private String rule;
 
     private String category;
 
     private String message;
 
-    private Integer line;
+    // TODO: This is currently not used in Artemis but could be useful for further filtering.
+    // Map tool specific codes to a common format
+    private String priority;
 
-    public Issue(String classname, String type, String priority, String category, String message, Integer line) {
-        this.classname = classname;
-        this.type = type;
-        this.priority = priority;
-        this.category = category;
-        this.message = message;
-        this.line = line;
+    public Issue() {
     }
 
-    public String getClassname() {
-        return classname;
+    public Issue(String filePath) {
+        this.filePath = filePath;
     }
 
-    public void setClassname(String classname) {
-        this.classname = classname;
+    public String getFilePath() {
+        return filePath;
     }
 
-    public String getType() {
-        return type;
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public Integer getStartLine() {
+        return startLine;
     }
 
-    public String getPriority() {
-        return priority;
+    public void setStartLine(Integer startLine) {
+        this.startLine = startLine;
     }
 
-    public void setPriority(String priority) {
-        this.priority = priority;
+    public Integer getEndLine() {
+        return endLine;
+    }
+
+    public void setEndLine(Integer endLine) {
+        this.endLine = endLine;
+    }
+
+    public Integer getStartColumn() {
+        return startColumn;
+    }
+
+    public void setStartColumn(Integer startColumn) {
+        this.startColumn = startColumn;
+    }
+
+    public Integer getEndColumn() {
+        return endColumn;
+    }
+
+    public void setEndColumn(Integer endColumn) {
+        this.endColumn = endColumn;
+    }
+
+    public String getRule() {
+        return rule;
+    }
+
+    public void setRule(String rule) {
+        this.rule = rule;
     }
 
     public String getCategory() {
@@ -63,11 +103,11 @@ public class Issue {
         this.message = message;
     }
 
-    public Integer getLine() {
-        return line;
+    public String getPriority() {
+        return priority;
     }
 
-    public void setLine(Integer line) {
-        this.line = line;
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
 }

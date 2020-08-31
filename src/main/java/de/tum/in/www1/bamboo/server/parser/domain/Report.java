@@ -4,19 +4,19 @@ import java.util.List;
 
 public class Report {
 
-    private StaticAssessmentTool tool;
+    private StaticCodeAnalysisTool tool;
 
     private List<Issue> issues;
 
-    public Report(StaticAssessmentTool tool) {
+    public Report(StaticCodeAnalysisTool tool) {
         this.tool = tool;;
     }
 
-    public StaticAssessmentTool getTool() {
+    public StaticCodeAnalysisTool getTool() {
         return tool;
     }
 
-    public void setTool(StaticAssessmentTool tool) {
+    public void setTool(StaticCodeAnalysisTool tool) {
         this.tool = tool;
     }
 

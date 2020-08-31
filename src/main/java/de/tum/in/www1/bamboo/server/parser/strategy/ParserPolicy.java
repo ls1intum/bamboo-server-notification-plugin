@@ -1,7 +1,7 @@
 package de.tum.in.www1.bamboo.server.parser.strategy;
 
 import de.tum.in.www1.bamboo.server.parser.ReportParser;
-import de.tum.in.www1.bamboo.server.parser.domain.StaticAssessmentTool;
+import de.tum.in.www1.bamboo.server.parser.domain.StaticCodeAnalysisTool;
 import de.tum.in.www1.bamboo.server.parser.exception.UnsupportedToolException;
 
 public class ParserPolicy {
@@ -16,14 +16,21 @@ public class ParserPolicy {
      * Selects the appropriate parsing strategy.
      *
      * @param tool String identifying the static code analysis tool
-     * @throws UnsupportedToolException - If specified Tool is not supported
+     * @throws UnsupportedToolException - If the specified tool is not supported
      */
-    public void configure(String tool) throws UnsupportedToolException {
+    public void configure(String tool) {
         // TODO: Inspect the document (identifying unique nodes) to select the appropriate strategy
-        if (StaticAssessmentTool.SPOTBUGS.name().equalsIgnoreCase(tool)) {
+        if (StaticCodeAnalysisTool.SPOTBUGS.name().equalsIgnoreCase(tool)) {
             parser.setParserStrategy(new SpotbugsParser());
-        } else {
-            throw new UnsupportedToolException("Report parsing for tool" + tool + "is not supported");
+        }
+        else if (StaticCodeAnalysisTool.CHECKSTYLE.name().equalsIgnoreCase(tool)) {
+            parser.setParserStrategy(new CheckstyleParser());
+        }
+        else if (StaticCodeAnalysisTool.PMD.name().equalsIgnoreCase(tool)) {
+            parser.setParserStrategy(new PMDParser());
+        }
+        else {
+            throw new UnsupportedToolException("Report parsing for tool " + tool + " is not supported");
         }
     }
 }
