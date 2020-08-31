@@ -480,7 +480,7 @@ public class ServerNotificationTransport implements NotificationTransport
     private JSONObject createLogEntryJSONObject(LogEntry logEntry) throws JSONException {
         JSONObject logEntryObject = new JSONObject();
         logEntryObject.put("log", logEntry.getLog());
-        logEntryObject.put("date", logEntry.getDate());
+        logEntryObject.put("date",  ZonedDateTime.ofInstant(logEntry.getDate().toInstant(), ZoneId.systemDefault()));
 
         return logEntryObject;
     }
