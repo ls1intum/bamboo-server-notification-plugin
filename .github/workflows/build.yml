@@ -24,6 +24,16 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: '${{ env.java }}'
+    - name: Install Bamboo SDK
+      run: |
+        wget -q https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
+        mkdir opt
+        tar -xzf *plugin-sdk* -C opt
+        mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
+        chmod a+x opt/atlassian-plugin-sdk/bin/*
+        chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
+        export PATH=opt/atlassian-plugin-sdk/bin:opt/atlassian-plugin-sdk/apache-maven-*/bin:$PATH
+        atlas-version
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
@@ -61,14 +71,14 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
     - name: Build
-      run: atlas-mvn -B package -Dmaven.test.skip=true
+      run: atlas-package -B -DskipTests=true
     - if: ${{ success() }}
       run: mkdir staging && cp target/*.jar staging
     - name: Upload artifact
       if: ${{ success() }}
       uses: actions/upload-artifact@v2
       with:
-        name: Package
+        name: plugin
         path: staging
 
   test:
@@ -95,7 +105,9 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Tests
+      - name: Unit tests
+        run: atlas-mvn -B test
+      - name: Integration tests
         run: atlas-mvn -B test
 
 
