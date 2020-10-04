@@ -15,14 +15,6 @@ on:
 
 env:
   java: 1.8
-  bambooSetupScript: 'wget -q https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
-    mkdir opt
-    tar -xzf *plugin-sdk* -C opt
-    mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
-    chmod a+x opt/atlassian-plugin-sdk/bin/*
-    chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
-    echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
-    opt/atlassian-plugin-sdk/bin/atlas-version'
 
 jobs:
   format:
@@ -32,17 +24,6 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: '${{ env.java }}'
-    - name: Install Bamboo SDK
-      run: |
-        wget -q https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
-        mkdir opt
-        tar -xzf *plugin-sdk* -C opt
-        mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
-        chmod a+x opt/atlassian-plugin-sdk/bin/*
-        chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
-        echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
-        echo "opt/atlassian-plugin-sdk/apache-maven-*/bin" >> $GITHUB_PATH
-        opt/atlassian-plugin-sdk/bin/atlas-version
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
@@ -52,6 +33,16 @@ jobs:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
+    - name: Install Bamboo SDK
+      run: |
+        wget -q https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
+        mkdir opt
+        tar -xzf *plugin-sdk* -C opt
+        mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
+        chmod a+x opt/atlassian-plugin-sdk/bin/*
+        chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
+        echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
+        opt/atlassian-plugin-sdk/bin/atlas-version
     - name: Spotless
       run: atlas-mvn -B spotless:check
 
@@ -73,9 +64,16 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
     - name: Install Bamboo SDK
       run: |
-        '${{bambooSetupScript}}'
+        wget -q https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
+        mkdir opt
+        tar -xzf *plugin-sdk* -C opt
+        mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
+        chmod a+x opt/atlassian-plugin-sdk/bin/*
+        chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
+        echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
+        opt/atlassian-plugin-sdk/bin/atlas-version
     - name: Build
-      run: atlas-package -B -DskipTests=true
+      run: atlas-package -DskipTests=true
     - if: ${{ success() }}
       run: mkdir staging && cp target/*.jar staging
     - name: Upload artifact
@@ -92,6 +90,15 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '${{ env.java }}'
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       - name: Install Bamboo SDK
         run: |
           wget -q https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
@@ -101,18 +108,10 @@ jobs:
           chmod a+x opt/atlassian-plugin-sdk/bin/*
           chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
           echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
-          echo "opt/atlassian-plugin-sdk/apache-maven-*/bin" >> $GITHUB_PATH
           opt/atlassian-plugin-sdk/bin/atlas-version
-      - uses: actions/checkout@v2
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
       - name: Unit tests
-        run: atlas-mvn -B test
+        run: atlas-unit-test
       - name: Integration tests
-        run: atlas-mvn -B test
+        run: atlas-integration-test
 
 
