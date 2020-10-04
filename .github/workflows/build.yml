@@ -54,6 +54,15 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: '${{ env.java }}'
+    - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+    - name: Cache Maven packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
     - name: Install Bamboo SDK
       run: |
         wget -q https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
@@ -64,14 +73,8 @@ jobs:
         chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
         echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
         opt/atlassian-plugin-sdk/bin/atlas-version
-        pwd
-        ls
     - name: Build
       run: |
-        echo $PATH
-        pwd
-        ls
-        ls
         atlas-version
     - if: ${{ success() }}
       run: mkdir staging && cp target/*.jar staging
