@@ -15,14 +15,14 @@ on:
 
 env:
   java: 1.8
-  bambooSetupScript: wget -q https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
+  bambooSetupScript: 'wget -q https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
     mkdir opt
     tar -xzf *plugin-sdk* -C opt
     mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
     chmod a+x opt/atlassian-plugin-sdk/bin/*
     chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
     echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
-    opt/atlassian-plugin-sdk/bin/atlas-version
+    opt/atlassian-plugin-sdk/bin/atlas-version'
 
 jobs:
   format:
