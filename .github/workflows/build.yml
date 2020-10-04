@@ -65,6 +65,7 @@ jobs:
         echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
         opt/atlassian-plugin-sdk/bin/atlas-version
         pwd
+        ls
     - uses: actions/checkout@v2
     - name: Cache Maven packages
       uses: actions/cache@v2
@@ -76,6 +77,8 @@ jobs:
       run: |
         echo $PATH
         pwd
+        ls
+        cd opt/
         ls
         opt/atlassian-plugin-sdk/bin/atlas-version
     - if: ${{ success() }}
