@@ -75,7 +75,7 @@ jobs:
         echo $PATH
         ls
         pwd
-        atlasian-version
+        atlas-version
     - if: ${{ success() }}
       run: mkdir staging && cp target/*.jar staging
     - name: Upload artifact
