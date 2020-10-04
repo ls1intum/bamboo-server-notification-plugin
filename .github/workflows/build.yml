@@ -15,6 +15,14 @@ on:
 
 env:
   java: 1.8
+  bambooSetupScript: wget -q https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
+    mkdir opt
+    tar -xzf *plugin-sdk* -C opt
+    mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
+    chmod a+x opt/atlassian-plugin-sdk/bin/*
+    chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
+    echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
+    opt/atlassian-plugin-sdk/bin/atlas-version
 
 jobs:
   format:
@@ -65,16 +73,9 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
     - name: Install Bamboo SDK
       run: |
-        wget -q https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
-        mkdir opt
-        tar -xzf *plugin-sdk* -C opt
-        mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
-        chmod a+x opt/atlassian-plugin-sdk/bin/*
-        chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
-        echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
-        opt/atlassian-plugin-sdk/bin/atlas-version
+        '${{bambooSetupScript}}'
     - name: Build
-      run: atlas-version
+      run: atlas-package -B -DskipTests=true
     - if: ${{ success() }}
       run: mkdir staging && cp target/*.jar staging
     - name: Upload artifact
