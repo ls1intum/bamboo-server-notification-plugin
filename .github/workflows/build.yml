@@ -32,8 +32,9 @@ jobs:
         mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
         chmod a+x opt/atlassian-plugin-sdk/bin/*
         chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
-        export PATH=opt/atlassian-plugin-sdk/bin:opt/atlassian-plugin-sdk/apache-maven-*/bin:$PATH
-        atlas-version
+        echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
+        echo "opt/atlassian-plugin-sdk/apache-maven-*/bin" >> $GITHUB_PATH
+        opt/atlassian-plugin-sdk/bin/atlas-version
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
@@ -61,8 +62,9 @@ jobs:
         mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
         chmod a+x opt/atlassian-plugin-sdk/bin/*
         chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
-        export PATH=opt/atlassian-plugin-sdk/bin:opt/atlassian-plugin-sdk/apache-maven-*/bin:$PATH
-        atlas-version
+        echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
+        echo "opt/atlassian-plugin-sdk/apache-maven-*/bin" >> $GITHUB_PATH
+        opt/atlassian-plugin-sdk/bin/atlas-version
     - uses: actions/checkout@v2
     - name: Cache Maven packages
       uses: actions/cache@v2
@@ -100,8 +102,9 @@ jobs:
           mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
           chmod a+x opt/atlassian-plugin-sdk/bin/*
           chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
-          export PATH=opt/atlassian-plugin-sdk/bin:opt/atlassian-plugin-sdk/apache-maven-*/bin:$PATH
-          atlas-version
+          echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
+          echo "opt/atlassian-plugin-sdk/apache-maven-*/bin" >> $GITHUB_PATH
+          opt/atlassian-plugin-sdk/bin/atlas-version
       - uses: actions/checkout@v2
       - name: Cache Maven packages
         uses: actions/cache@v2
