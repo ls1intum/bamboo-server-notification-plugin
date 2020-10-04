@@ -1,0 +1,91 @@
+name: Continous Integration
+
+on:
+  pull_request:
+  push:
+    branches:
+    - master
+    tags: '[0-9]+.[0-9]+.[0-9]+'
+    paths-ignore:
+    - './idea'
+    - 'README.md'
+    - 'LICENSE'
+    - '.github/**'
+    - '!.github/workflows/build.yml'
+
+env:
+  java: 1.8
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Java
+      uses: actions/setup-java@v1
+      with:
+        java-version: '${{ env.java }}'
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Cache Maven packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    - name: Spotless
+      run: mvn -B spotless:check
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Java
+      uses: actions/setup-java@v1
+      with:
+        java-version: '${{ env.java }}'
+    - name: Install Bamboo SDK
+      run: |
+        wget https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz
+        mkdir opt
+        tar -xvzf *plugin-sdk* -C opt
+        mv opt/*plugin-sdk* opt/atlassian-plugin-sdk
+        chmod a+x opt/atlassian-plugin-sdk/bin/*
+        chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
+        export PATH=opt/atlassian-plugin-sdk/bin:opt/atlassian-plugin-sdk/apache-maven-*/bin:$PATH
+        atlas-version
+    - uses: actions/checkout@v2
+    - name: Cache Maven packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    - name: Build
+      run: mvn -B package -Dmaven.test.skip=true
+    - if: ${{ success() }}
+      run: mkdir staging && cp target/*.jar staging
+    - name: Upload artifact
+      if: ${{ success() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: Package
+        path: staging
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '${{ env.java }}'
+      - uses: actions/checkout@v2
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Tests
+        run: mvn -B test
+
+
