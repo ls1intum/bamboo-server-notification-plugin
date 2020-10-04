@@ -64,6 +64,7 @@ jobs:
         chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
         echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
         opt/atlassian-plugin-sdk/bin/atlas-version
+        pwd
     - uses: actions/checkout@v2
     - name: Cache Maven packages
       uses: actions/cache@v2
@@ -74,6 +75,8 @@ jobs:
     - name: Build
       run: |
         echo $PATH
+        pwd
+        ls
         opt/atlassian-plugin-sdk/bin/atlas-version
     - if: ${{ success() }}
       run: mkdir staging && cp target/*.jar staging
