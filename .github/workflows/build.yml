@@ -72,7 +72,7 @@ jobs:
         pwd
         ls
         ls
-        opt/atlassian-plugin-sdk/bin/atlas-version
+        atlas-version
     - if: ${{ success() }}
       run: mkdir staging && cp target/*.jar staging
     - name: Upload artifact
