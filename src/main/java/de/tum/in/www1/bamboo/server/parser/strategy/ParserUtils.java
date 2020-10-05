@@ -1,8 +1,8 @@
 package de.tum.in.www1.bamboo.server.parser.strategy;
 
-import nu.xom.Element;
-
 import java.io.File;
+
+import nu.xom.Element;
 
 /**
  * Utility class providing shared functionality for report parsing
@@ -19,7 +19,8 @@ public class ParserUtils {
     public static int extractInt(Element element, String attribute) {
         try {
             return Integer.parseInt(element.getAttributeValue(attribute));
-        } catch (NumberFormatException e) {
+        }
+        catch (NumberFormatException e) {
             return 0;
         }
     }
