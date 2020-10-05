@@ -185,6 +185,9 @@
                             <order>java,javax,org,com,de</order>
                         </importOrder>
                         <removeUnusedImports/>
+                        <eclipse>
+                            <file>${basedir}/spotless-style.xml</file> <!-- optional -->
+                        </eclipse>
                     </java>
                 </configuration>
             </plugin>
