@@ -109,5 +109,3 @@ jobs:
         run: atlas-unit-test
       - name: Integration tests
         run: atlas-integration-test
-
-
