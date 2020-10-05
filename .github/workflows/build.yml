@@ -17,7 +17,7 @@ env:
   java: 1.8
 
 jobs:
-  format:
+  style:
     runs-on: ubuntu-latest
     steps:
     - name: Setup Java
