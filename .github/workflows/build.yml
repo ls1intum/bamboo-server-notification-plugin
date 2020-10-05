@@ -70,16 +70,6 @@ jobs:
         chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
         echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
         opt/atlassian-plugin-sdk/bin/atlas-version
-    - name: Setup Git
-      run: |
-        git config user.email "actions@github.com"
-        git config user.name "GitHub Actions"
-    - name: Test Prepare Release
-      run: |
-        atlas-mvn -B release:prepare -DdryRun=true
-        atlas-mvn -B release:clean
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Build
       run: atlas-package -DskipTests=true
     - if: ${{ success() }}
