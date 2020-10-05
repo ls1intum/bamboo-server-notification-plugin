@@ -11,7 +11,7 @@ on:
     - 'README.md'
     - 'LICENSE'
     - '.github/**'
-    - '!.github/workflows/build.yml'
+    - '!.github/workflows/**'
 
 env:
   java: 1.8
@@ -54,8 +54,6 @@ jobs:
       with:
         java-version: '${{ env.java }}'
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
     - name: Cache Maven packages
       uses: actions/cache@v2
       with:
@@ -72,6 +70,16 @@ jobs:
         chmod a+x opt/atlassian-plugin-sdk/apache-maven-*/bin/*
         echo "opt/atlassian-plugin-sdk/bin" >> $GITHUB_PATH
         opt/atlassian-plugin-sdk/bin/atlas-version
+    - name: Setup Git
+      run: |
+        git config user.email "actions@github.com"
+        git config user.name "GitHub Actions"
+    - name: Test Prepare Release
+      run: |
+        atlas-mvn -B release:prepare -DdryRun=true
+        atlas-mvn -B release:clean
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Build
       run: atlas-package -DskipTests=true
     - if: ${{ success() }}
@@ -91,8 +99,6 @@ jobs:
         with:
           java-version: '${{ env.java }}'
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - name: Cache Maven packages
         uses: actions/cache@v2
         with:
