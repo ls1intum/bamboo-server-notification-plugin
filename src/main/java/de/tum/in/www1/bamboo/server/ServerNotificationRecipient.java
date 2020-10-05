@@ -11,7 +11,6 @@ import com.atlassian.bamboo.plan.Plan;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.plugin.descriptor.NotificationRecipientModuleDescriptor;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
-import com.atlassian.bamboo.storage.StorageLocationService;
 import com.atlassian.bamboo.template.TemplateRenderer;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Lists;

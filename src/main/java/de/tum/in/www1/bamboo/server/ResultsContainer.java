@@ -1,13 +1,11 @@
 package de.tum.in.www1.bamboo.server;
 
-import com.atlassian.bamboo.plan.PlanKey;
 import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.results.tests.TestResults;
 import com.atlassian.bamboo.task.TaskResult;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class ResultsContainer {
 

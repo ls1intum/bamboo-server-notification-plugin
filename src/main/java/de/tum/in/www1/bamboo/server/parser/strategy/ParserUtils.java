@@ -3,7 +3,6 @@ package de.tum.in.www1.bamboo.server.parser.strategy;
 import nu.xom.Element;
 
 import java.io.File;
-import java.util.regex.Pattern;
 
 /**
  * Utility class providing shared functionality for report parsing
