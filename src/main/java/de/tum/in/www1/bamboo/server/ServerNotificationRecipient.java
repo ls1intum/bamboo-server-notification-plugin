@@ -51,12 +51,14 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
     private static final int TESTRESULTSCONTAINER_REMOVE_TIME = 60;
 
     /*
-     * The TestResults of successful tests can not be loaded from the ChainResultSummary (only failing ones can). The TestResults need a BuildContext and can therefor only be
-     * accessed when using an Event that extends BuildContextEvent. The normal BuildCompletedEvent does not extend BuildContextEvent, but the PostBuildCompletedEvent does. We
-     * listen for the PostBuildCompletedEvent and save the test cases in this Map with the key of the job as String. The TestResults are stored inside the ResultsContainer class
-     * and it can be retrieved using this Map in the ServerNotificationTransport class. A method clearOldTestResultsContainer() has been added, that removes old ResultsContainer
-     * from the Map, because we add every build to this Map, even those without Notifications enabled. The time (in seconds) after the ResultsContainer can be specified in the
-     * variable TESTRESULTSCONTAINER_REMOVE_TIME.
+     * The TestResults of successful tests can not be loaded from the ChainResultSummary (only failing ones can).
+     * The TestResults need a BuildContext and can therefor only be accessed when using an Event that extends BuildContextEvent.
+     * The normal BuildCompletedEvent does not extend BuildContextEvent, but the PostBuildCompletedEvent does.
+     * We listen for the PostBuildCompletedEvent and save the test cases in this Map with the key of the job as String.
+     * The TestResults are stored inside the ResultsContainer class and it can be retrieved using this Map in the ServerNotificationTransport class.
+     * A method clearOldTestResultsContainer() has been added, that removes old ResultsContainer from the Map, because we add every build to this Map, even those without
+     * Notifications enabled.
+     * The time (in seconds) after the ResultsContainer can be specified in the variable TESTRESULTSCONTAINER_REMOVE_TIME.
      */
     private static Map<String, ResultsContainer> cachedTestResults = new ConcurrentHashMap<>();
 

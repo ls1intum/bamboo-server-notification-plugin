@@ -60,7 +60,13 @@ public class ResultsContainer {
 
     @Override
     public String toString() {
-        return "ResultsContainer{" + "planResultKey=" + planResultKey + ", initTimestamp=" + initTimestamp + ", successfulTests=" + successfulTests + ", skippedTests="
-                + skippedTests + ", failedTests=" + failedTests + ", taskResults=" + taskResults + '}';
+        return "ResultsContainer{" +
+                "planResultKey=" + planResultKey +
+                ", initTimestamp=" + initTimestamp +
+                ", successfulTests=" + successfulTests +
+                ", skippedTests=" + skippedTests +
+                ", failedTests=" + failedTests +
+                ", taskResults=" + taskResults +
+                '}';
     }
 }
