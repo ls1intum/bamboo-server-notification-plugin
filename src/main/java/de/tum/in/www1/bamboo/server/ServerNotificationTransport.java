@@ -94,7 +94,7 @@ public class ServerNotificationTransport implements NotificationTransport
     private static int FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS = 5000;
 
     // Maximum number of lines of log per job. The last lines will be taken.
-    private static int JOB_LOG_MAX_LINES = 1000;
+    private static int JOB_LOG_MAX_LINES = 5000;
 
     // We are only interested in logs coming from the build, not in logs from Bamboo
     final List<Class<?>> logEntryTypes = ImmutableList.of(BuildOutputLogEntry.class, ErrorLogEntry.class);
