@@ -31,9 +31,9 @@ import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
-import de.tum.in.www1.bamboo.server.parser.exception.ParserException;
-import de.tum.in.www1.bamboo.server.parser.ReportParser;
 import com.google.common.collect.ImmutableList;
+import de.tum.in.ase.parser.ReportParser;
+import de.tum.in.ase.parser.exception.ParserException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
@@ -64,7 +64,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Collections;
-import java.util.List;
 
 public class ServerNotificationTransport implements NotificationTransport
 {
@@ -368,7 +367,8 @@ public class ServerNotificationTransport implements NotificationTransport
 
         try {
             logToBuildLog("Creating artifact JSON object for artifact definition: " + label);
-            String reportJSON = reportParser.transformToJSONReport(rootFile, label);
+            // The report parser is able to identify the tool to which the report belongs
+            String reportJSON = reportParser.transformToJSONReport(rootFile);
             return Optional.of(new JSONObject(reportJSON));
         } catch (JSONException e) {
             log.error("Error constructing artifact JSON for artifact definition " + label, e);
@@ -406,7 +406,6 @@ public class ServerNotificationTransport implements NotificationTransport
              */
             if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
-                // TODO: Identify report in a more generic way
                 Optional<JSONObject> optionalReport = createStaticCodeAnalysisReportJSONObject(fileDataProvider.getFile(), artifact.getLabel());
                 optionalReport.ifPresent(artifactJSONObjects::add);
             } else {
