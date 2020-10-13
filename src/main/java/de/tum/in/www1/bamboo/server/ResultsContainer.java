@@ -1,21 +1,22 @@
 package de.tum.in.www1.bamboo.server;
 
-import com.atlassian.bamboo.plan.PlanKey;
+import java.util.ArrayList;
+import java.util.Collection;
+
 import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.results.tests.TestResults;
 import com.atlassian.bamboo.task.TaskResult;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 public class ResultsContainer {
 
     private final PlanResultKey planResultKey;
+
     private final long initTimestamp = System.currentTimeMillis();
 
     private Collection<TestResults> successfulTests = new ArrayList<>();
+
     private Collection<TestResults> skippedTests = new ArrayList<>();
+
     private Collection<TestResults> failedTests = new ArrayList<>();
 
     private Collection<TaskResult> taskResults = new ArrayList<>();
@@ -24,8 +25,8 @@ public class ResultsContainer {
         this.planResultKey = planResultKey;
     }
 
-    public ResultsContainer(PlanResultKey planResultKey, Collection<TestResults> successfulTests, Collection<TestResults> skippedTests,
-                            Collection<TestResults> failedTests, Collection<TaskResult> taskResults) {
+    public ResultsContainer(PlanResultKey planResultKey, Collection<TestResults> successfulTests, Collection<TestResults> skippedTests, Collection<TestResults> failedTests,
+            Collection<TaskResult> taskResults) {
         this.planResultKey = planResultKey;
         this.successfulTests = successfulTests;
         this.skippedTests = skippedTests;
