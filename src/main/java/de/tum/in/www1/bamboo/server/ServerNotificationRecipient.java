@@ -1,34 +1,34 @@
 package de.tum.in.www1.bamboo.server;
 
-import com.atlassian.bamboo.build.BuildLoggerManager;
-import com.atlassian.bamboo.build.logger.BuildLogFileAccessorFactory;
-import com.atlassian.bamboo.deployments.results.DeploymentResult;
-import com.atlassian.bamboo.notification.NotificationRecipient;
-import com.atlassian.bamboo.notification.NotificationTransport;
-import com.atlassian.bamboo.notification.recipients.AbstractNotificationRecipient;
-import com.atlassian.bamboo.deployments.notification.DeploymentResultAwareNotificationRecipient;
-import com.atlassian.bamboo.plan.Plan;
-import com.atlassian.bamboo.plan.cache.ImmutablePlan;
-import com.atlassian.bamboo.plugin.descriptor.NotificationRecipientModuleDescriptor;
-import com.atlassian.bamboo.resultsummary.ResultsSummary;
-import com.atlassian.bamboo.storage.StorageLocationService;
-import com.atlassian.bamboo.template.TemplateRenderer;
-import com.atlassian.bamboo.variable.CustomVariableContext;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ServerNotificationRecipient extends AbstractNotificationRecipient implements DeploymentResultAwareNotificationRecipient,
-                                                                                           NotificationRecipient.RequiresPlan,
-                                                                                           NotificationRecipient.RequiresResultSummary
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.atlassian.bamboo.build.BuildLoggerManager;
+import com.atlassian.bamboo.build.logger.BuildLogFileAccessorFactory;
+import com.atlassian.bamboo.deployments.notification.DeploymentResultAwareNotificationRecipient;
+import com.atlassian.bamboo.deployments.results.DeploymentResult;
+import com.atlassian.bamboo.notification.NotificationRecipient;
+import com.atlassian.bamboo.notification.NotificationTransport;
+import com.atlassian.bamboo.notification.recipients.AbstractNotificationRecipient;
+import com.atlassian.bamboo.plan.Plan;
+import com.atlassian.bamboo.plan.cache.ImmutablePlan;
+import com.atlassian.bamboo.plugin.descriptor.NotificationRecipientModuleDescriptor;
+import com.atlassian.bamboo.resultsummary.ResultsSummary;
+import com.atlassian.bamboo.template.TemplateRenderer;
+import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+public class ServerNotificationRecipient extends AbstractNotificationRecipient
+        implements DeploymentResultAwareNotificationRecipient, NotificationRecipient.RequiresPlan, NotificationRecipient.RequiresResultSummary
 
 {
+
     private static String WEBHOOK_URL = "webhookUrl";
 
     private String webhookUrl = null;
@@ -36,10 +36,15 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     private TemplateRenderer templateRenderer;
 
     private ImmutablePlan plan;
+
     private ResultsSummary resultsSummary;
+
     private DeploymentResult deploymentResult;
+
     private CustomVariableContext customVariableContext;
+
     private static BuildLoggerManager buildLoggerManager;
+
     private static BuildLogFileAccessorFactory buildLogFileAccessorFactory;
 
     // Time in seconds before removing ResultsContainer
@@ -58,25 +63,20 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
     private static Map<String, ResultsContainer> cachedTestResults = new ConcurrentHashMap<>();
 
     @Override
-    public void populate(@NotNull Map<String, String[]> params)
-    {
-        for (String next : params.keySet())
-        {
+    public void populate(@NotNull Map<String, String[]> params) {
+        for (String next : params.keySet()) {
             System.out.println("next = " + next);
         }
-        if (params.containsKey(WEBHOOK_URL))
-        {
+        if (params.containsKey(WEBHOOK_URL)) {
             int i = params.get(WEBHOOK_URL).length - 1;
             this.webhookUrl = params.get(WEBHOOK_URL)[i];
         }
     }
 
     @Override
-    public void init(@Nullable String configurationData)
-    {
+    public void init(@Nullable String configurationData) {
 
-        if (StringUtils.isNotBlank(configurationData))
-        {
+        if (StringUtils.isNotBlank(configurationData)) {
             String delimiter = "\\|";
 
             String[] configValues = configurationData.split(delimiter);
@@ -89,8 +89,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
 
     @NotNull
     @Override
-    public String getRecipientConfig()
-    {
+    public String getRecipientConfig() {
         // We can do this because webhook URLs don't have | in them, but it's pretty dodge. Better to JSONify or something?
         String delimiter = "|";
 
@@ -103,18 +102,15 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
 
     @NotNull
     @Override
-    public String getEditHtml()
-    {
-        String editTemplateLocation = ((NotificationRecipientModuleDescriptor)getModuleDescriptor()).getEditTemplate();
+    public String getEditHtml() {
+        String editTemplateLocation = ((NotificationRecipientModuleDescriptor) getModuleDescriptor()).getEditTemplate();
         return templateRenderer.render(editTemplateLocation, populateContext());
     }
 
-    private Map<String, Object> populateContext()
-    {
+    private Map<String, Object> populateContext() {
         Map<String, Object> context = Maps.newHashMap();
 
-        if (webhookUrl != null)
-        {
+        if (webhookUrl != null) {
             context.put(WEBHOOK_URL, webhookUrl);
         }
 
@@ -125,59 +121,47 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
 
     @NotNull
     @Override
-    public String getViewHtml()
-    {
-        String editTemplateLocation = ((NotificationRecipientModuleDescriptor)getModuleDescriptor()).getViewTemplate();
+    public String getViewHtml() {
+        String editTemplateLocation = ((NotificationRecipientModuleDescriptor) getModuleDescriptor()).getViewTemplate();
         return templateRenderer.render(editTemplateLocation, populateContext());
     }
 
-
-
     @NotNull
-    public List<NotificationTransport> getTransports()
-    {
+    public List<NotificationTransport> getTransports() {
         List<NotificationTransport> list = Lists.newArrayList();
         list.add(new ServerNotificationTransport(webhookUrl, plan, resultsSummary, deploymentResult, customVariableContext, buildLoggerManager, buildLogFileAccessorFactory));
         return list;
     }
 
-    public void setPlan(@Nullable final Plan plan)
-    {
+    public void setPlan(@Nullable final Plan plan) {
         this.plan = plan;
     }
 
-    public void setPlan(@Nullable final ImmutablePlan plan)
-    {
+    public void setPlan(@Nullable final ImmutablePlan plan) {
         this.plan = plan;
     }
 
-    public void setDeploymentResult(@Nullable final DeploymentResult deploymentResult)
-    {
+    public void setDeploymentResult(@Nullable final DeploymentResult deploymentResult) {
         this.deploymentResult = deploymentResult;
     }
 
-    public void setResultsSummary(@Nullable final ResultsSummary resultsSummary)
-    {
+    public void setResultsSummary(@Nullable final ResultsSummary resultsSummary) {
         this.resultsSummary = resultsSummary;
     }
 
-    public void setBuildLoggerManager(@Nullable final BuildLoggerManager buildLoggerManager)
-    {
+    public void setBuildLoggerManager(@Nullable final BuildLoggerManager buildLoggerManager) {
         this.buildLoggerManager = buildLoggerManager;
     }
 
-    public static BuildLoggerManager getBuildLoggerManager()
-    {
+    public static BuildLoggerManager getBuildLoggerManager() {
         return buildLoggerManager;
     }
 
-    public void setBuildLogFileAccessorFactory(@Nullable final BuildLogFileAccessorFactory buildLogFileAccessorFactory)
-    {
+    public void setBuildLogFileAccessorFactory(@Nullable final BuildLogFileAccessorFactory buildLogFileAccessorFactory) {
         this.buildLogFileAccessorFactory = buildLogFileAccessorFactory;
     }
 
-    public static BuildLogFileAccessorFactory getBuildLogFileAccessorFactory()
-    {
+    public static BuildLogFileAccessorFactory getBuildLogFileAccessorFactory() {
         return buildLogFileAccessorFactory;
     }
 
@@ -189,11 +173,12 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient i
         getCachedTestResults().entrySet().removeIf(entry -> entry.getValue().getInitTimestamp() < (System.currentTimeMillis() - (1000 * TESTRESULTSCONTAINER_REMOVE_TIME)));
     }
 
-    //-----------------------------------Dependencies
-    public void setTemplateRenderer(TemplateRenderer templateRenderer)
-    {
+    // -----------------------------------Dependencies
+    public void setTemplateRenderer(TemplateRenderer templateRenderer) {
         this.templateRenderer = templateRenderer;
     }
 
-    public void setCustomVariableContext(CustomVariableContext customVariableContext) { this.customVariableContext = customVariableContext; }
+    public void setCustomVariableContext(CustomVariableContext customVariableContext) {
+        this.customVariableContext = customVariableContext;
+    }
 }
