@@ -141,7 +141,7 @@
         <dependency>
             <groupId>de.tum.in.ase</groupId>
             <artifactId>static-code-analysis-parser</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
         </dependency>
     </dependencies>
     <build>
