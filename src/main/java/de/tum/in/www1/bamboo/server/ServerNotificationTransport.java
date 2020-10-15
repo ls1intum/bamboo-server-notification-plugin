@@ -1,14 +1,45 @@
 package de.tum.in.www1.bamboo.server;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.atlassian.bamboo.artifact.MutableArtifact;
 import com.atlassian.bamboo.build.BuildLoggerManager;
+import com.atlassian.bamboo.build.BuildOutputLogEntry;
+import com.atlassian.bamboo.build.ErrorLogEntry;
+import com.atlassian.bamboo.build.LogEntry;
 import com.atlassian.bamboo.build.artifact.ArtifactLink;
 import com.atlassian.bamboo.build.artifact.ArtifactLinkDataProvider;
 import com.atlassian.bamboo.build.artifact.ArtifactLinkManager;
 import com.atlassian.bamboo.build.artifact.FileSystemArtifactLinkDataProvider;
-import com.atlassian.bamboo.build.BuildOutputLogEntry;
-import com.atlassian.bamboo.build.ErrorLogEntry;
-import com.atlassian.bamboo.build.LogEntry;
 import com.atlassian.bamboo.build.logger.BuildLogFileAccessor;
 import com.atlassian.bamboo.build.logger.BuildLogFileAccessorFactory;
 import com.atlassian.bamboo.build.logger.BuildLogger;
@@ -31,43 +62,13 @@ import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
-import de.tum.in.www1.bamboo.server.parser.exception.ParserException;
-import de.tum.in.www1.bamboo.server.parser.ReportParser;
 import com.google.common.collect.ImmutableList;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.StatusLine;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
-import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Collections;
-import java.util.List;
+import de.tum.in.ase.parser.ReportParser;
+import de.tum.in.ase.parser.exception.ParserException;
 
-public class ServerNotificationTransport implements NotificationTransport
-{
+public class ServerNotificationTransport implements NotificationTransport {
+
     private static final Logger log = Logger.getLogger(ServerNotificationTransport.class);
 
     private final String webhookUrl;
@@ -78,36 +79,40 @@ public class ServerNotificationTransport implements NotificationTransport
 
     @Nullable
     private final ImmutablePlan plan;
+
     @Nullable
     private final ResultsSummary resultsSummary;
+
     @Nullable
     private final DeploymentResult deploymentResult;
+
     @Nullable
     private final BuildLoggerManager buildLoggerManager;
+
     @Nullable
     private final BuildLogFileAccessorFactory buildLogFileAccessorFactory;
 
     // Will be injected by Bamboo
     private VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager");
+
     private ArtifactLinkManager artifactLinkManager = (ArtifactLinkManager) ContainerManager.getComponent("artifactLinkManager");
 
     // Maximum length for the feedback text. The feedback will be truncated afterwards
     private static int FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS = 5000;
 
     // Maximum number of lines of log per job. The last lines will be taken.
-    private static int JOB_LOG_MAX_LINES = 1000;
+    private static int JOB_LOG_MAX_LINES = 5000;
 
     // We are only interested in logs coming from the build, not in logs from Bamboo
     final List<Class<?>> logEntryTypes = ImmutableList.of(BuildOutputLogEntry.class, ErrorLogEntry.class);
 
     public ServerNotificationTransport(String webhookUrl,
-                                       @Nullable ImmutablePlan plan,
-                                       @Nullable ResultsSummary resultsSummary,
-                                       @Nullable DeploymentResult deploymentResult,
-                                       CustomVariableContext customVariableContext,
-                                       BuildLoggerManager buildLoggerManager,
-                                       BuildLogFileAccessorFactory buildLogFileAccessorFactory)
-    {
+            @Nullable ImmutablePlan plan,
+            @Nullable ResultsSummary resultsSummary,
+            @Nullable DeploymentResult deploymentResult,
+            CustomVariableContext customVariableContext,
+            BuildLoggerManager buildLoggerManager,
+            BuildLogFileAccessorFactory buildLogFileAccessorFactory) {
         this.webhookUrl = customVariableContext.substituteString(webhookUrl);
         this.plan = plan;
         this.resultsSummary = resultsSummary;
@@ -117,41 +122,36 @@ public class ServerNotificationTransport implements NotificationTransport
         this.buildLogFileAccessorFactory = buildLogFileAccessorFactory;
 
         URI uri;
-        try
-        {
+        try {
             uri = new URI(webhookUrl);
         }
-        catch (URISyntaxException e)
-        {
+        catch (URISyntaxException e) {
             logErrorToBuildLog("Unable to set up proxy settings, invalid URI encountered: " + e);
             log.error("Unable to set up proxy settings, invalid URI encountered: " + e);
             return;
         }
 
         HttpUtils.EndpointSpec proxyForScheme = HttpUtils.getProxyForScheme(uri.getScheme());
-        if (proxyForScheme!=null)
-        {
+        if (proxyForScheme != null) {
             HttpHost proxy = new HttpHost(proxyForScheme.host, proxyForScheme.port);
             DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
             this.client = HttpClients.custom().setRoutePlanner(routePlanner).build();
         }
-        else
-        {
+        else {
             this.client = HttpClients.createDefault();
         }
     }
 
-    public void sendNotification(@NotNull Notification notification)
-    {
+    public void sendNotification(@NotNull Notification notification) {
         logToBuildLog("Sending notification");
-        try
-        {
+        try {
             HttpPost method = setupPostMethod();
             JSONObject jsonObject = createJSONObject(notification);
             try {
                 String secret = (String) jsonObject.get("secret");
                 method.addHeader("Authorization", secret);
-            } catch (JSONException e) {
+            }
+            catch (JSONException e) {
                 logErrorToBuildLog("Error while getting secret from JSONObject: " + e.getMessage());
                 log.error("Error while getting secret from JSONObject: " + e.getMessage(), e);
             }
@@ -172,7 +172,8 @@ public class ServerNotificationTransport implements NotificationTransport
                     if (statusLine != null) {
                         logToBuildLog("StatusLine is not null: " + statusLine.toString());
                         logToBuildLog("StatusCode is: " + statusLine.getStatusCode());
-                    } else {
+                    }
+                    else {
                         logErrorToBuildLog("Statusline is null");
                     }
 
@@ -181,26 +182,27 @@ public class ServerNotificationTransport implements NotificationTransport
                         String response = EntityUtils.toString(httpEntity);
                         logToBuildLog("Response from entity is: " + response);
                         EntityUtils.consume(httpEntity);
-                    } else {
+                    }
+                    else {
                         logErrorToBuildLog("Httpentity is null");
                     }
-                } else {
+                }
+                else {
                     logErrorToBuildLog("Response is null");
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 logErrorToBuildLog("Error while sending payload: " + e.getMessage());
                 log.error("Error while sending payload: " + e.getMessage(), e);
             }
         }
-        catch(URISyntaxException e)
-        {
+        catch (URISyntaxException e) {
             logErrorToBuildLog("Error parsing webhook url: " + e.getMessage());
             log.error("Error parsing webhook url: " + e.getMessage(), e);
         }
     }
 
-    private HttpPost setupPostMethod() throws URISyntaxException
-    {
+    private HttpPost setupPostMethod() throws URISyntaxException {
         HttpPost post = new HttpPost((new URI(webhookUrl)));
         post.setHeader("Content-Type", "application/json");
         return post;
@@ -213,15 +215,18 @@ public class ServerNotificationTransport implements NotificationTransport
             List<VariableDefinition> variableDefinitions = variableDefinitionManager.getGlobalVariables();
             if (!variableDefinitions.isEmpty()) {
                 // Variable name contains "password" to ensure that the secret is hidden in the UI
-                Optional<VariableDefinition> optionalVariableDefinition = variableDefinitions.stream().filter(vd -> vd.getKey().equals("SERVER_PLUGIN_SECRET_PASSWORD")).findFirst();
+                Optional<VariableDefinition> optionalVariableDefinition = variableDefinitions.stream().filter(vd -> vd.getKey().equals("SERVER_PLUGIN_SECRET_PASSWORD"))
+                        .findFirst();
                 if (optionalVariableDefinition.isPresent()) {
                     jsonObject.put("secret", optionalVariableDefinition.get().getValue()); // Used to verify that the request is coming from a legitimate server
-                } else {
+                }
+                else {
                     jsonObject.put("secret", "SERVER_PLUGIN_SECRET_PASSWORD-NOT-DEFINED");
                     logErrorToBuildLog("Variable SERVER_PLUGIN_SECRET_PASSWORD is not defined");
                 }
 
-            } else {
+            }
+            else {
                 jsonObject.put("secret", "NO-GLOBAL-VARIABLES-ARE-DEFINED");
                 logErrorToBuildLog("No global variables are defined");
             }
@@ -231,7 +236,6 @@ public class ServerNotificationTransport implements NotificationTransport
             if (plan != null) {
                 JSONObject planDetails = new JSONObject();
                 planDetails.put("key", plan.getPlanKey());
-
 
                 jsonObject.put("plan", planDetails);
             }
@@ -269,7 +273,7 @@ public class ServerNotificationTransport implements NotificationTransport
                     changesetDetails.put("repositoryName", changeset.getRepositoryData().getName());
 
                     JSONArray commits = new JSONArray();
-                    for (Commit commit: changeset.getCommits()) {
+                    for (Commit commit : changeset.getCommits()) {
                         JSONObject commitDetails = new JSONObject();
                         commitDetails.put("id", commit.getChangeSetId());
                         commitDetails.put("comment", commit.getComment());
@@ -307,13 +311,13 @@ public class ServerNotificationTransport implements NotificationTransport
 
                                 JSONArray taskResults = createTasksJSONArray(resultsContainer.getTaskResults());
                                 jobDetails.put("tasks", taskResults);
-                            } else {
+                            }
+                            else {
                                 logErrorToBuildLog("Could not load cached test results!");
                             }
                             logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
                             JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
                             jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
-
 
                             List<LogEntry> logEntries = Collections.emptyList();
 
@@ -324,7 +328,8 @@ public class ServerNotificationTransport implements NotificationTransport
                                     final BuildLogFileAccessor fileAccessor = this.buildLogFileAccessorFactory.createBuildLogFileAccessor(buildResultsSummary.getPlanResultKey());
                                     logEntries = fileAccessor.getLastNLogsOfType(JOB_LOG_MAX_LINES, logEntryTypes);
                                     logToBuildLog("Found: " + logEntries.size() + " LogEntries");
-                                } catch (IOException ex) {
+                                }
+                                catch (IOException ex) {
                                     logErrorToBuildLog("Error while loading build log: " + ex.getMessage());
                                 }
                             }
@@ -346,8 +351,8 @@ public class ServerNotificationTransport implements NotificationTransport
                 jsonObject.put("build", buildDetails);
             }
 
-
-        } catch (JSONException e) {
+        }
+        catch (JSONException e) {
             logErrorToBuildLog("JSON construction error :" + e.getMessage());
             log.error("JSON construction error :" + e.getMessage(), e);
         }
@@ -368,12 +373,15 @@ public class ServerNotificationTransport implements NotificationTransport
 
         try {
             logToBuildLog("Creating artifact JSON object for artifact definition: " + label);
-            String reportJSON = reportParser.transformToJSONReport(rootFile, label);
+            // The report parser is able to identify the tool to which the report belongs
+            String reportJSON = reportParser.transformToJSONReport(rootFile);
             return Optional.of(new JSONObject(reportJSON));
-        } catch (JSONException e) {
+        }
+        catch (JSONException e) {
             log.error("Error constructing artifact JSON for artifact definition " + label, e);
             logErrorToBuildLog("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage());
-        } catch (ParserException e) {
+        }
+        catch (ParserException e) {
             log.error("Error parsing static code analysis report " + label, e);
             logErrorToBuildLog("Error parsing static code analysis report " + label + ": " + e.getMessage());
         }
@@ -406,10 +414,10 @@ public class ServerNotificationTransport implements NotificationTransport
              */
             if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
-                // TODO: Identify report in a more generic way
                 Optional<JSONObject> optionalReport = createStaticCodeAnalysisReportJSONObject(fileDataProvider.getFile(), artifact.getLabel());
                 optionalReport.ifPresent(artifactJSONObjects::add);
-            } else {
+            }
+            else {
                 log.debug("Unsupported ArtifactLinkDataProvider " + dataProvider.getClass().getSimpleName()
                         + " encountered for label" + artifact.getLabel() + " in job " + jobId);
                 logToBuildLog("Unsupported artifact handler configuration encountered for artifact "
@@ -429,9 +437,9 @@ public class ServerNotificationTransport implements NotificationTransport
 
         if (addErrors) {
             JSONArray testCaseErrorDetails = new JSONArray();
-            for(TestCaseResultError testCaseResultError : testResults.getErrors()) {
+            for (TestCaseResultError testCaseResultError : testResults.getErrors()) {
                 String errorMessageString = testCaseResultError.getContent();
-                if(errorMessageString != null && errorMessageString.length() > FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS) {
+                if (errorMessageString != null && errorMessageString.length() > FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS) {
                     errorMessageString = errorMessageString.substring(0, FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS);
                 }
                 testCaseErrorDetails.put(errorMessageString);
@@ -478,7 +486,7 @@ public class ServerNotificationTransport implements NotificationTransport
     private JSONObject createLogEntryJSONObject(LogEntry logEntry) throws JSONException {
         JSONObject logEntryObject = new JSONObject();
         logEntryObject.put("log", logEntry.getLog());
-        logEntryObject.put("date",  ZonedDateTime.ofInstant(logEntry.getDate().toInstant(), ZoneId.systemDefault()));
+        logEntryObject.put("date", ZonedDateTime.ofInstant(logEntry.getDate().toInstant(), ZoneId.systemDefault()));
 
         return logEntryObject;
     }
