@@ -75,8 +75,6 @@ public class ServerNotificationTransport implements NotificationTransport {
 
     private CloseableHttpClient client;
 
-    private ReportParser reportParser;
-
     @Nullable
     private final ImmutablePlan plan;
 
@@ -118,7 +116,6 @@ public class ServerNotificationTransport implements NotificationTransport {
         this.resultsSummary = resultsSummary;
         this.deploymentResult = deploymentResult;
         this.buildLoggerManager = buildLoggerManager;
-        this.reportParser = new ReportParser();
         this.buildLogFileAccessorFactory = buildLogFileAccessorFactory;
 
         URI uri;
@@ -374,6 +371,8 @@ public class ServerNotificationTransport implements NotificationTransport {
         try {
             logToBuildLog("Creating artifact JSON object for artifact definition: " + label);
             // The report parser is able to identify the tool to which the report belongs
+            ReportParser reportParser = new ReportParser();
+
             String reportJSON = reportParser.transformToJSONReport(rootFile);
             return Optional.of(new JSONObject(reportJSON));
         }
