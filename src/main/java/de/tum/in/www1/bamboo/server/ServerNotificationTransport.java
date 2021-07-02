@@ -412,6 +412,9 @@ public class ServerNotificationTransport implements NotificationTransport {
              * Has to be extended to support other artifact handling configurations.
              */
             if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
+
+                // TODO: check for artifact names to match checkstyle or pmd or pmd_cpd or spotbugs and "swift lint" and only try to read in xml files
+
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
                 Optional<JSONObject> optionalReport = createStaticCodeAnalysisReportJSONObject(fileDataProvider.getFile(), artifact.getLabel());
                 optionalReport.ifPresent(artifactJSONObjects::add);
