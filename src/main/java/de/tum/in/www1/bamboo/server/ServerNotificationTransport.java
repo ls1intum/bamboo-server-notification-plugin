@@ -415,7 +415,7 @@ public class ServerNotificationTransport implements NotificationTransport {
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
                 File artifactFile = fileDataProvider.getFile();
 
-                if (StaticCodeAnalysisUtils.isStaticCodeAnalysisArtifactFile(artifactFile.getName())) {
+                if (StaticCodeAnalysisUtils.isStaticCodeAnalysisArtifact(artifact.getLabel(), artifactFile.getName())) {
                     Optional<JSONObject> optionalReport = createStaticCodeAnalysisReportJSONObject(artifactFile, artifact.getLabel());
                     optionalReport.ifPresent(artifactJSONObjects::add);
                 }

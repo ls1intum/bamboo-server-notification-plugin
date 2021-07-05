@@ -5,20 +5,9 @@ package de.tum.in.www1.bamboo.server;
  * supported by the static code analysis parser.
  */
 public enum StaticCodeAnalysisArtifacts {
-
-    SPOTBUGS("spotbugsXml.xml"),
-    CHECKSTYLE("checkstyle-result.xml"),
-    SWIFTLINT("swiftlint-result.xml"),
-    PMD("pmd.xml"),
-    PMD_CPD("cpd.xml");
-
-    private final String artifactFilename;
-
-    StaticCodeAnalysisArtifacts(String artifactFilename) {
-        this.artifactFilename = artifactFilename;
-    }
-
-    public String getArtifactFilename() {
-        return artifactFilename;
-    }
+    CHECKSTYLE,
+    SPOTBUGS,
+    PMD,
+    PMD_CPD,
+    SWIFTLINT
 }
