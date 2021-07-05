@@ -5,6 +5,7 @@ package de.tum.in.www1.bamboo.server;
  * supported by the static code analysis parser.
  */
 public enum StaticCodeAnalysisArtifacts {
+
     SPOTBUGS("spotbugsXml.xml"),
     CHECKSTYLE("checkstyle-result.xml"),
     SWIFTLINT("swiftlint-result.xml"),

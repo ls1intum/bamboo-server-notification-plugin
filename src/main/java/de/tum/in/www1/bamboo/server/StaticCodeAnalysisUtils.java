@@ -13,12 +13,12 @@ public class StaticCodeAnalysisUtils {
      */
     public static boolean isStaticCodeAnalysisArtifactFile(String filename) {
         // The static code analysis parser only supports xml files.
-        if (!FilenameUtils.getExtension(filename).equals("xml")){
+        if (!FilenameUtils.getExtension(filename).equals("xml")) {
             return false;
         }
 
         for (StaticCodeAnalysisArtifacts staticCodeAnalysisArtifact : StaticCodeAnalysisArtifacts.values()) {
-            if (staticCodeAnalysisArtifact.getArtifactFilename().equals(filename)){
+            if (staticCodeAnalysisArtifact.getArtifactFilename().equals(filename)) {
                 return true;
             }
         }
