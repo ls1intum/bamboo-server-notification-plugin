@@ -13,8 +13,8 @@ public class StaticCodeAnalysisUtils {
      * @return true if the file is supported by the static code analysis parser.
      */
     public static boolean isStaticCodeAnalysisArtifact(String artifactLabel, String artifactFilename) {
-        // The static code analysis parser only supports xml files.
-        if (!FilenameUtils.getExtension(artifactFilename).equals("xml")) {
+        // The static code analysis parser only supports xml files and json files (just for parsing gcc output).
+        if (!(FilenameUtils.getExtension(artifactFilename).equals("xml") || FilenameUtils.getExtension(artifactFilename).equals("json"))) {
             return false;
         }
 
