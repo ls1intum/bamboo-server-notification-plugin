@@ -140,6 +140,7 @@ public class ServerNotificationTransport implements NotificationTransport {
     }
 
     public void sendNotification(@NotNull Notification notification) {
+        log.info("[BAMBOO-SERVER-NOTIFICATION] start send notification for plan: " + plan.getPlanKey());
         logToBuildLog("Sending notification");
         try {
             HttpPost method = setupPostMethod();
@@ -197,6 +198,7 @@ public class ServerNotificationTransport implements NotificationTransport {
             logErrorToBuildLog("Error parsing webhook url: " + e.getMessage());
             log.error("Error parsing webhook url: " + e.getMessage(), e);
         }
+        log.info("[BAMBOO-SERVER-NOTIFICATION] finish send notification for plan: " + plan.getPlanKey());
     }
 
     private HttpPost setupPostMethod() throws URISyntaxException {

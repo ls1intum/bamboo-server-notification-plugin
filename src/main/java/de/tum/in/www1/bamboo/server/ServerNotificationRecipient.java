@@ -26,7 +26,6 @@ import com.google.common.collect.Maps;
 
 public class ServerNotificationRecipient extends AbstractNotificationRecipient
         implements DeploymentResultAwareNotificationRecipient, NotificationRecipient.RequiresPlan, NotificationRecipient.RequiresResultSummary
-
 {
 
     private static String WEBHOOK_URL = "webhookUrl";
