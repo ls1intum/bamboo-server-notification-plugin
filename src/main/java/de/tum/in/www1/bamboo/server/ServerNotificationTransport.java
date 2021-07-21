@@ -42,7 +42,6 @@ import com.atlassian.bamboo.build.artifact.ArtifactLinkManager;
 import com.atlassian.bamboo.build.artifact.FileSystemArtifactLinkDataProvider;
 import com.atlassian.bamboo.build.logger.BuildLogFileAccessor;
 import com.atlassian.bamboo.build.logger.BuildLogFileAccessorFactory;
-import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.chains.ChainResultsSummary;
 import com.atlassian.bamboo.chains.ChainStageResult;
 import com.atlassian.bamboo.commit.Commit;
@@ -123,8 +122,7 @@ public class ServerNotificationTransport implements NotificationTransport {
             uri = new URI(webhookUrl);
         }
         catch (URISyntaxException e) {
-            logErrorToBuildLog("Unable to set up proxy settings, invalid URI encountered: " + e);
-            log.error("Unable to set up proxy settings, invalid URI encountered: " + e);
+            LoggingUtils.logError("Unable to set up proxy settings, invalid URI encountered: " + e, buildLoggerManager, plan.getPlanKey(), log, e);
             return;
         }
 
@@ -140,8 +138,7 @@ public class ServerNotificationTransport implements NotificationTransport {
     }
 
     public void sendNotification(@NotNull Notification notification) {
-        log.info("[BAMBOO-SERVER-NOTIFICATION] start send notification for plan: " + plan.getPlanKey());
-        logToBuildLog("Sending notification");
+        LoggingUtils.logInfo("Start sending notification", buildLoggerManager, plan.getPlanKey(), log);
         try {
             HttpPost method = setupPostMethod();
             JSONObject jsonObject = createJSONObject(notification);
@@ -150,55 +147,52 @@ public class ServerNotificationTransport implements NotificationTransport {
                 method.addHeader("Authorization", secret);
             }
             catch (JSONException e) {
-                logErrorToBuildLog("Error while getting secret from JSONObject: " + e.getMessage());
-                log.error("Error while getting secret from JSONObject: " + e.getMessage(), e);
+                LoggingUtils.logError("Error while getting secret from JSONObject: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
             }
 
             method.setEntity(new StringEntity(jsonObject.toString(), ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8)));
 
             try {
-                logToBuildLog("Executing call to " + method.getURI().toString());
-                log.debug(method.getURI().toString());
-                log.debug(method.getEntity().toString());
+                LoggingUtils.logInfo("Executing call to " + method.getURI().toString(), buildLoggerManager, plan.getPlanKey(), log);
+                LoggingUtils.logDebug(method.getURI().toString(), plan.getPlanKey(), log);
+                LoggingUtils.logDebug(method.getEntity().toString(), plan.getPlanKey(), log);
                 CloseableHttpResponse closeableHttpResponse = client.execute(method);
 
-                logToBuildLog("Call executed");
+                LoggingUtils.logInfo("Call executed", buildLoggerManager, plan.getPlanKey(), log);
                 if (closeableHttpResponse != null) {
-                    logToBuildLog("Response is not null: " + closeableHttpResponse.toString());
+                    LoggingUtils.logInfo("Response is not null: " + closeableHttpResponse.toString(), buildLoggerManager, plan.getPlanKey(), log);
 
                     StatusLine statusLine = closeableHttpResponse.getStatusLine();
                     if (statusLine != null) {
-                        logToBuildLog("StatusLine is not null: " + statusLine.toString());
-                        logToBuildLog("StatusCode is: " + statusLine.getStatusCode());
+                        LoggingUtils.logInfo("StatusLine is not null: " + statusLine.toString(), buildLoggerManager, plan.getPlanKey(), log);
+                        LoggingUtils.logInfo("StatusCode is: " + statusLine.getStatusCode(), buildLoggerManager, plan.getPlanKey(), log);
                     }
                     else {
-                        logErrorToBuildLog("Statusline is null");
+                        LoggingUtils.logInfo("Statusline is null" + closeableHttpResponse.toString(), buildLoggerManager, plan.getPlanKey(), log);
                     }
 
                     HttpEntity httpEntity = closeableHttpResponse.getEntity();
                     if (httpEntity != null) {
                         String response = EntityUtils.toString(httpEntity);
-                        logToBuildLog("Response from entity is: " + response);
+                        LoggingUtils.logInfo("Response from entity is: " + response, buildLoggerManager, plan.getPlanKey(), log);
                         EntityUtils.consume(httpEntity);
                     }
                     else {
-                        logErrorToBuildLog("Httpentity is null");
+                        LoggingUtils.logError("Httpentity is null", buildLoggerManager, plan.getPlanKey(), log, null);
                     }
                 }
                 else {
-                    logErrorToBuildLog("Response is null");
+                    LoggingUtils.logError("Response is null", buildLoggerManager, plan.getPlanKey(), log, null);
                 }
             }
             catch (Exception e) {
-                logErrorToBuildLog("Error while sending payload: " + e.getMessage());
-                log.error("Error while sending payload: " + e.getMessage(), e);
+                LoggingUtils.logError("Error while sending payload: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
             }
         }
         catch (URISyntaxException e) {
-            logErrorToBuildLog("Error parsing webhook url: " + e.getMessage());
-            log.error("Error parsing webhook url: " + e.getMessage(), e);
+            LoggingUtils.logError("Error parsing webhook url: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
         }
-        log.info("[BAMBOO-SERVER-NOTIFICATION] finish send notification for plan: " + plan.getPlanKey());
+        LoggingUtils.logInfo("finish send notification for plan", buildLoggerManager, plan.getPlanKey(), log);
     }
 
     private HttpPost setupPostMethod() throws URISyntaxException {
@@ -208,7 +202,8 @@ public class ServerNotificationTransport implements NotificationTransport {
     }
 
     private JSONObject createJSONObject(Notification notification) {
-        logToBuildLog("Creating JSON object");
+        LoggingUtils.logInfo("Creating JSON object", buildLoggerManager, plan.getPlanKey(), log);
+
         JSONObject jsonObject = new JSONObject();
         try {
             List<VariableDefinition> variableDefinitions = variableDefinitionManager.getGlobalVariables();
@@ -221,13 +216,13 @@ public class ServerNotificationTransport implements NotificationTransport {
                 }
                 else {
                     jsonObject.put("secret", "SERVER_PLUGIN_SECRET_PASSWORD-NOT-DEFINED");
-                    logErrorToBuildLog("Variable SERVER_PLUGIN_SECRET_PASSWORD is not defined");
+                    LoggingUtils.logError("Variable SERVER_PLUGIN_SECRET_PASSWORD is not defined", buildLoggerManager, plan.getPlanKey(), log, null);
                 }
 
             }
             else {
                 jsonObject.put("secret", "NO-GLOBAL-VARIABLES-ARE-DEFINED");
-                logErrorToBuildLog("No global variables are defined");
+                LoggingUtils.logError("No global variables are defined", buildLoggerManager, plan.getPlanKey(), log, null);
             }
 
             jsonObject.put("notificationType", notification.getDescription());
@@ -295,10 +290,10 @@ public class ServerNotificationTransport implements NotificationTransport {
 
                             jobDetails.put("id", buildResultsSummary.getId());
 
-                            logToBuildLog("Loading cached test results for job " + buildResultsSummary.getId());
+                            LoggingUtils.logInfo("Loading cached test results for job " + buildResultsSummary.getId(), buildLoggerManager, plan.getPlanKey(), log);
                             ResultsContainer resultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
                             if (resultsContainer != null) {
-                                logToBuildLog("Tests results found");
+                                LoggingUtils.logInfo("Tests results found", buildLoggerManager, plan.getPlanKey(), log);
                                 JSONArray successfulTestDetails = createTestsResultsJSONArray(resultsContainer.getSuccessfulTests(), false);
                                 jobDetails.put("successfulTests", successfulTestDetails);
 
@@ -312,9 +307,9 @@ public class ServerNotificationTransport implements NotificationTransport {
                                 jobDetails.put("tasks", taskResults);
                             }
                             else {
-                                logErrorToBuildLog("Could not load cached test results!");
+                                LoggingUtils.logError("Could not load cached test results!", buildLoggerManager, plan.getPlanKey(), log, null);
                             }
-                            logToBuildLog("Loading artifacts for job " + buildResultsSummary.getId());
+                            LoggingUtils.logInfo("Loading artifacts for job " + buildResultsSummary.getId(), buildLoggerManager, plan.getPlanKey(), log);
                             JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
                             jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
 
@@ -326,10 +321,10 @@ public class ServerNotificationTransport implements NotificationTransport {
                                 try {
                                     final BuildLogFileAccessor fileAccessor = this.buildLogFileAccessorFactory.createBuildLogFileAccessor(buildResultsSummary.getPlanResultKey());
                                     logEntries = fileAccessor.getLastNLogsOfType(JOB_LOG_MAX_LINES, logEntryTypes);
-                                    logToBuildLog("Found: " + logEntries.size() + " LogEntries");
+                                    LoggingUtils.logInfo("Found: " + logEntries.size() + " LogEntries", buildLoggerManager, plan.getPlanKey(), log);
                                 }
                                 catch (IOException ex) {
-                                    logErrorToBuildLog("Error while loading build log: " + ex.getMessage());
+                                    LoggingUtils.logError("Error while loading build log: " + ex.getMessage(), buildLoggerManager, plan.getPlanKey(), log, ex);
                                 }
                             }
                             JSONArray logEntriesArray = new JSONArray();
@@ -352,11 +347,10 @@ public class ServerNotificationTransport implements NotificationTransport {
 
         }
         catch (JSONException e) {
-            logErrorToBuildLog("JSON construction error :" + e.getMessage());
-            log.error("JSON construction error :" + e.getMessage(), e);
+            LoggingUtils.logError("JSON construction error :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
         }
 
-        logToBuildLog("JSON object created");
+        LoggingUtils.logInfo("JSON object created", buildLoggerManager, plan.getPlanKey(), log);
         return jsonObject;
     }
 
@@ -371,7 +365,7 @@ public class ServerNotificationTransport implements NotificationTransport {
         }
 
         try {
-            logToBuildLog("Creating artifact JSON object for artifact definition: " + label);
+            LoggingUtils.logInfo("Creating artifact JSON object for artifact definition: " + label, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
             // The report parser is able to identify the tool to which the report belongs
             ReportParser reportParser = new ReportParser();
 
@@ -379,12 +373,11 @@ public class ServerNotificationTransport implements NotificationTransport {
             return Optional.of(new JSONObject(reportJSON));
         }
         catch (JSONException e) {
-            log.error("Error constructing artifact JSON for artifact definition " + label, e);
-            logErrorToBuildLog("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage());
+            LoggingUtils.logError("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log, e);
+
         }
         catch (ParserException e) {
-            log.error("Error parsing static code analysis report " + label, e);
-            logErrorToBuildLog("Error parsing static code analysis report " + label + ": " + e.getMessage());
+            LoggingUtils.logError("Error parsing static code analysis report " + label + ": " + e.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log, e);
         }
         return Optional.empty();
     }
@@ -404,8 +397,8 @@ public class ServerNotificationTransport implements NotificationTransport {
             ArtifactLinkDataProvider dataProvider = artifactLinkManager.getArtifactLinkDataProvider(artifact);
 
             if (dataProvider == null) {
-                log.debug("ArtifactLinkDataProvider is null for " + artifact.getLabel() + " in job " + jobId);
-                logToBuildLog("Could not retrieve data for artifact " + artifact.getLabel() + " in job " + jobId);
+                LoggingUtils.logInfo("ArtifactLinkDataProvider is null for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
+                LoggingUtils.logInfo("Could not retrieve data for artifact " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
                 continue;
             }
 
@@ -423,10 +416,8 @@ public class ServerNotificationTransport implements NotificationTransport {
                 }
             }
             else {
-                log.debug("Unsupported ArtifactLinkDataProvider " + dataProvider.getClass().getSimpleName()
-                        + " encountered for label" + artifact.getLabel() + " in job " + jobId);
-                logToBuildLog("Unsupported artifact handler configuration encountered for artifact "
-                        + artifact.getLabel() + " in job " + jobId);
+                LoggingUtils.logError("Unsupported artifact handler configuration encountered for artifact "
+                        + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log, null);
             }
         }
         artifactJSONObjects.forEach(artifactsArray::put);
@@ -434,7 +425,7 @@ public class ServerNotificationTransport implements NotificationTransport {
     }
 
     private JSONObject createTestsResultsJSONObject(TestResults testResults, boolean addErrors) throws JSONException {
-        logToBuildLog("Creating test results JSON object for " + testResults.getActualMethodName());
+        LoggingUtils.logInfo("Creating test results JSON object for " + testResults.getActualMethodName(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
         JSONObject testResultsJSON = new JSONObject();
         testResultsJSON.put("name", testResults.getActualMethodName());
         testResultsJSON.put("methodName", testResults.getMethodName());
@@ -456,7 +447,7 @@ public class ServerNotificationTransport implements NotificationTransport {
     }
 
     private JSONArray createTestsResultsJSONArray(Collection<TestResults> testResultsCollection, boolean addErrors) throws JSONException {
-        logToBuildLog("Creating test results JSON array");
+        LoggingUtils.logInfo("Creating test results JSON array", buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
         JSONArray testResultsArray = new JSONArray();
         for (TestResults testResults : testResultsCollection) {
             testResultsArray.put(createTestsResultsJSONObject(testResults, addErrors));
@@ -474,7 +465,7 @@ public class ServerNotificationTransport implements NotificationTransport {
      * @throws JSONException if JSONObject can't be created
      */
     private JSONArray createTasksJSONArray(Collection<TaskResult> taskResults) throws JSONException {
-        logToBuildLog("Creating tasks JSON array");
+        LoggingUtils.logInfo("Creating tasks JSON array", buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
         JSONArray tasksArray = new JSONArray();
         for (TaskResult taskResult : taskResults) {
             JSONObject taskJSON = new JSONObject();
@@ -494,19 +485,5 @@ public class ServerNotificationTransport implements NotificationTransport {
         logEntryObject.put("date", ZonedDateTime.ofInstant(logEntry.getDate().toInstant(), ZoneId.systemDefault()));
 
         return logEntryObject;
-    }
-
-    private void logToBuildLog(String s) {
-        if (buildLoggerManager != null && plan != null) {
-            BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
-            buildLogger.addBuildLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
-        }
-    }
-
-    private void logErrorToBuildLog(String s) {
-        if (buildLoggerManager != null && plan != null) {
-            BuildLogger buildLogger = buildLoggerManager.getLogger(plan.getPlanKey());
-            buildLogger.addErrorLogEntry("[BAMBOO-SERVER-NOTIFICATION] " + s);
-        }
     }
 }

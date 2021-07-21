@@ -13,17 +13,20 @@ public class BuildCompleteListener {
 
     @EventListener
     public void onPostBuildComplete(final PostBuildCompletedEvent postBuildCompletedEvent) {
-        log.info("[BAMBOO-SERVER-NOTIFICATION] onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString());
+        LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString(), null, postBuildCompletedEvent.getPlanKey(), log);
         CurrentBuildResult currentBuildResult = postBuildCompletedEvent.getContext().getBuildResult();
         ResultsContainer resultsContainer = new ResultsContainer(postBuildCompletedEvent.getPlanResultKey(),
                 currentBuildResult.getSuccessfulTestResults() != null ? currentBuildResult.getSuccessfulTestResults() : Collections.emptySet(),
                 currentBuildResult.getSkippedTestResults() != null ? currentBuildResult.getSkippedTestResults() : Collections.emptySet(),
                 currentBuildResult.getFailedTestResults() != null ? currentBuildResult.getFailedTestResults() : Collections.emptySet(),
                 currentBuildResult.getTaskResults());
+        LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString() + " - Container created", null, postBuildCompletedEvent.getPlanKey(), log);
         ServerNotificationRecipient.getCachedTestResults().put(postBuildCompletedEvent.getPlanResultKey().toString(), resultsContainer);
+        LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString() + " - Container stored", null, postBuildCompletedEvent.getPlanKey(), log);
 
         // Remove old ResultsContainer based on their initialization timestamp
         ServerNotificationRecipient.clearOldTestResultsContainer();
+        LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString() + " - Cleared old test results container", null, postBuildCompletedEvent.getPlanKey(), log);
     }
 
 }
