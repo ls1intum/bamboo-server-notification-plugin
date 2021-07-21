@@ -13,6 +13,7 @@ public class BuildCompleteListener {
 
     @EventListener
     public void onPostBuildComplete(final PostBuildCompletedEvent postBuildCompletedEvent) {
+        long startTime = System.currentTimeMillis();
         LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString(), null, postBuildCompletedEvent.getPlanKey(), log);
         CurrentBuildResult currentBuildResult = postBuildCompletedEvent.getContext().getBuildResult();
         ResultsContainer resultsContainer = new ResultsContainer(postBuildCompletedEvent.getPlanResultKey(),
@@ -20,13 +21,20 @@ public class BuildCompleteListener {
                 currentBuildResult.getSkippedTestResults() != null ? currentBuildResult.getSkippedTestResults() : Collections.emptySet(),
                 currentBuildResult.getFailedTestResults() != null ? currentBuildResult.getFailedTestResults() : Collections.emptySet(),
                 currentBuildResult.getTaskResults());
-        LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString() + " - Container created", null, postBuildCompletedEvent.getPlanKey(), log);
+
+        long containerCreationTime = System.currentTimeMillis() - startTime;
+        LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString() + " - Container created took " + containerCreationTime + "ms", null, postBuildCompletedEvent.getPlanKey(), log);
+
+        startTime = System.currentTimeMillis();
         ServerNotificationRecipient.getCachedTestResults().put(postBuildCompletedEvent.getPlanResultKey().toString(), resultsContainer);
-        LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString() + " - Container stored", null, postBuildCompletedEvent.getPlanKey(), log);
+        long containerStoreTime = System.currentTimeMillis() - startTime;
+        LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString() + " - Container stored took " + containerStoreTime + "ms", null, postBuildCompletedEvent.getPlanKey(), log);
 
         // Remove old ResultsContainer based on their initialization timestamp
+        startTime = System.currentTimeMillis();
         ServerNotificationRecipient.clearOldTestResultsContainer();
-        LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString() + " - Cleared old test results container", null, postBuildCompletedEvent.getPlanKey(), log);
+        long containerClearTime = System.currentTimeMillis() - startTime;
+        LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString() + " - Cleared old test results container took " + containerClearTime + "ms", null, postBuildCompletedEvent.getPlanKey(), log);
     }
 
 }
