@@ -8,7 +8,7 @@ public class StaticCodeAnalysisUtils {
      * Returns whether the specified filename is a file supported by the
      * static code analysis parser.
      *
-     * @param artifactLabel    the label of the artifact
+     * @param artifactLabel the label of the artifact
      * @param artifactFilename the file name of the artifact file.
      * @return true if the file is supported by the static code analysis parser.
      */

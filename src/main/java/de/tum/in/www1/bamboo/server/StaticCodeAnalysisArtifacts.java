@@ -17,5 +17,4 @@ public enum StaticCodeAnalysisArtifacts {
     PMD_CPD,
     SWIFTLINT,
     GCC,
-    CPPCHECK
 }
