@@ -28,11 +28,12 @@ Setup
 Compiling from source
 ---------------------
 
-You first need to [Set up the Atlassian Plugin SDK](https://developer.atlassian.com/docs/getting-started/set-up-the-atlassian-plugin-sdk-and-build-a-project). Or you could just do a `brew tap atlassian/tap; brew install atlassian/tap/atlassian-plugin-sdk` on a mac is you use HomeBrew... At the project top level (where the pom.xml is) :
+You first need to [Set up the Atlassian Plugin SDK](https://developer.atlassian.com/docs/getting-started/set-up-the-atlassian-plugin-sdk-and-build-a-project). Or you could just do a `brew tap atlassian/tap; brew install atlassian/tap/atlassian-plugin-sdk` on macOS if you use HomeBrew... At the project top level (where the pom.xml is):
 
 1.	Compile : `atlas-compile`
 2.	Run : `atlas-run`
-3.	Debug : `atlas-debug`
+3.	Test: `atlas-unit-test`
+4.	Debug : `atlas-debug`
 
 Feedback? Questions?
 --------------------
