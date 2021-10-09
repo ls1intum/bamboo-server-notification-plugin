@@ -9,7 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.tum.in.www1</groupId>
     <artifactId>bamboo-server</artifactId>
-    <version>1.3.8</version>
+    <version>1.4.0</version>
     <organization>
         <name>LS1 TUM</name>
         <url>https://ase.in.tum.de</url>
@@ -23,16 +23,16 @@
     <description>Notify a Server when a build was executed.</description>
     <packaging>atlassian-plugin</packaging>
     <properties>
-        <bamboo.version>7.0.2</bamboo.version>
+        <bamboo.version>7.2.5</bamboo.version>
         <bamboo.data.version>${bamboo.version}</bamboo.data.version>
         <amps.version>6.3.21</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
         <atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
         <platform.version>4.0.0</platform.version>
-        <jackson.version>2.12.3</jackson.version>
-        <spotless.version>2.12.1</spotless.version>
-        <junit-jupiter.version>5.7.2</junit-jupiter.version>
-        <mockito.version>3.11.2</mockito.version>
+        <jackson.version>2.13.0</jackson.version>
+        <spotless.version>2.17.0</spotless.version>
+        <junit-jupiter.version>5.8.1</junit-jupiter.version>
+        <mockito.version>3.12.4</mockito.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
     </properties>
@@ -126,7 +126,7 @@
             <!-- jsoup HTML parser library @ http://jsoup.org/ -->
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.13.1</version>
+            <version>1.14.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -136,7 +136,7 @@
         <dependency>
             <groupId>de.tum.in.ase</groupId>
             <artifactId>static-code-analysis-parser</artifactId>
-            <version>1.3.4</version>
+            <version>1.4.0</version>
         </dependency>
     </dependencies>
     <build>
