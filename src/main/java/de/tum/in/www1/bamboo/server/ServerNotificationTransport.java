@@ -1,18 +1,17 @@
 package de.tum.in.www1.bamboo.server;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+import com.google.gson.Gson;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
@@ -312,6 +311,10 @@ public class ServerNotificationTransport implements NotificationTransport {
                             LoggingUtils.logInfo("Loading artifacts for job " + buildResultsSummary.getId(), buildLoggerManager, plan.getPlanKey(), log);
                             JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
                             jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
+                            JSONArray testwiseCoverageReports = createTestwiseCoverageJSONObject(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
+                            if (testwiseCoverageReports != null) {
+                                jobDetails.put("testwiseCoverageReport", testwiseCoverageReports);
+                            }
 
                             List<LogEntry> logEntries = Collections.emptyList();
 
@@ -380,6 +383,43 @@ public class ServerNotificationTransport implements NotificationTransport {
             LoggingUtils.logError("Error parsing static code analysis report " + label + ": " + e.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log, e);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Find and returns a JSONArray from the testwise coverage reports if exists
+     * @param artifactLinks all artifact links from the build to search in
+     * @param jobId the job id
+     * @return a JSONArray containing all testwise coverage reports if this artifact exists, otherwise null
+     */
+    private JSONArray createTestwiseCoverageJSONObject(Collection<ArtifactLink> artifactLinks, long jobId) {
+        Optional<ArtifactLink> optionalArtifactLink = artifactLinks.stream().filter(artifact -> "coverageResults".equals(artifact.getArtifact().getLabel())).findFirst();
+
+        if (!optionalArtifactLink.isPresent()) {
+            return null;
+        }
+
+        MutableArtifact artifact = optionalArtifactLink.get().getArtifact();
+        ArtifactLinkDataProvider dataProvider = artifactLinkManager.getArtifactLinkDataProvider(artifact);
+
+        if (dataProvider == null) {
+            LoggingUtils.logInfo("ArtifactLinkDataProvider is null for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
+            LoggingUtils.logInfo("Could not retrieve data for artifact " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
+            return null;
+        }
+
+        try {
+            if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
+                FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
+                File artifactFile = fileDataProvider.getFile();
+                BufferedReader reader = Files.newBufferedReader(artifactFile.toPath());
+
+                Gson gson = new Gson();
+                return new JSONObject(gson.fromJson(reader, Map.class)).getJSONArray("tests");
+            }
+        } catch (IOException exception) {
+            LoggingUtils.logInfo("Could not read from artifact file for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
+        }
+        return null;
     }
 
     private JSONArray createStaticCodeAnalysisReportArray(Collection<ArtifactLink> artifactLinks, long jobId) {
