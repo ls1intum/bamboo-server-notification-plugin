@@ -9,9 +9,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import com.google.gson.Gson;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
@@ -61,6 +65,7 @@ import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.ImmutableList;
+import com.google.gson.Gson;
 
 import de.tum.in.ase.parser.ReportParser;
 import de.tum.in.ase.parser.exception.ParserException;
@@ -376,11 +381,13 @@ public class ServerNotificationTransport implements NotificationTransport {
             return Optional.of(new JSONObject(reportJSON));
         }
         catch (JSONException e) {
-            LoggingUtils.logError("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log, e);
+            LoggingUtils.logError("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage(), buildLoggerManager,
+                    plan != null ? plan.getPlanKey() : null, log, e);
 
         }
         catch (ParserException e) {
-            LoggingUtils.logError("Error parsing static code analysis report " + label + ": " + e.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log, e);
+            LoggingUtils.logError("Error parsing static code analysis report " + label + ": " + e.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log,
+                    e);
         }
         return Optional.empty();
     }
@@ -402,8 +409,10 @@ public class ServerNotificationTransport implements NotificationTransport {
         ArtifactLinkDataProvider dataProvider = artifactLinkManager.getArtifactLinkDataProvider(artifact);
 
         if (dataProvider == null) {
-            LoggingUtils.logInfo("ArtifactLinkDataProvider is null for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
-            LoggingUtils.logInfo("Could not retrieve data for artifact " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
+            LoggingUtils.logInfo("ArtifactLinkDataProvider is null for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null,
+                    log);
+            LoggingUtils.logInfo("Could not retrieve data for artifact " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null,
+                    log);
             return null;
         }
 
@@ -416,8 +425,10 @@ public class ServerNotificationTransport implements NotificationTransport {
                 Gson gson = new Gson();
                 return new JSONObject(gson.fromJson(reader, Map.class)).getJSONArray("tests");
             }
-        } catch (IOException exception) {
-            LoggingUtils.logInfo("Could not read from artifact file for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
+        }
+        catch (IOException exception) {
+            LoggingUtils.logInfo("Could not read from artifact file for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null,
+                    log);
         }
         return null;
     }
@@ -437,8 +448,10 @@ public class ServerNotificationTransport implements NotificationTransport {
             ArtifactLinkDataProvider dataProvider = artifactLinkManager.getArtifactLinkDataProvider(artifact);
 
             if (dataProvider == null) {
-                LoggingUtils.logInfo("ArtifactLinkDataProvider is null for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
-                LoggingUtils.logInfo("Could not retrieve data for artifact " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
+                LoggingUtils.logInfo("ArtifactLinkDataProvider is null for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager,
+                        plan != null ? plan.getPlanKey() : null, log);
+                LoggingUtils.logInfo("Could not retrieve data for artifact " + artifact.getLabel() + " in job " + jobId, buildLoggerManager,
+                        plan != null ? plan.getPlanKey() : null, log);
                 continue;
             }
 
