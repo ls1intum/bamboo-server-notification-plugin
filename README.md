@@ -283,7 +283,7 @@ Sample request
                },
                {
                   "date":"2019-05-05T09:51:30.960Z[Zulu]",
-                  "log":"[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException"
+                  "log":"[ERROR] [Help 1] https://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException"
                }
             ],
             "id":14581874

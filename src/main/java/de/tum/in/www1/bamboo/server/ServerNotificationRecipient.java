@@ -28,7 +28,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
         implements DeploymentResultAwareNotificationRecipient, NotificationRecipient.RequiresPlan, NotificationRecipient.RequiresResultSummary
 {
 
-    private static String WEBHOOK_URL = "webhookUrl";
+    private static final String WEBHOOK_URL = "webhookUrl";
 
     private String webhookUrl = null;
 
@@ -37,8 +37,6 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
     private ImmutablePlan plan;
 
     private ResultsSummary resultsSummary;
-
-    private DeploymentResult deploymentResult;
 
     private CustomVariableContext customVariableContext;
 
@@ -59,7 +57,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
      * Notifications enabled.
      * The time (in seconds) after the ResultsContainer can be specified in the variable TESTRESULTSCONTAINER_REMOVE_TIME.
      */
-    private static Map<String, ResultsContainer> cachedTestResults = new ConcurrentHashMap<>();
+    private static final Map<String, ResultsContainer> cachedTestResults = new ConcurrentHashMap<>();
 
     @Override
     public void populate(@NotNull Map<String, String[]> params) {
@@ -89,9 +87,6 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
     @NotNull
     @Override
     public String getRecipientConfig() {
-        // We can do this because webhook URLs don't have | in them, but it's pretty dodge. Better to JSONify or something?
-        String delimiter = "|";
-
         StringBuilder recipientConfig = new StringBuilder();
         if (StringUtils.isNotBlank(webhookUrl)) {
             recipientConfig.append(webhookUrl);
@@ -113,7 +108,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
             context.put(WEBHOOK_URL, webhookUrl);
         }
 
-        System.out.println("populateContext = " + context.toString());
+        System.out.println("populateContext = " + context);
 
         return context;
     }
@@ -128,7 +123,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
     @NotNull
     public List<NotificationTransport> getTransports() {
         List<NotificationTransport> list = Lists.newArrayList();
-        list.add(new ServerNotificationTransport(webhookUrl, plan, resultsSummary, deploymentResult, customVariableContext, buildLoggerManager, buildLogFileAccessorFactory));
+        list.add(new ServerNotificationTransport(webhookUrl, plan, resultsSummary, customVariableContext, buildLoggerManager, buildLogFileAccessorFactory));
         return list;
     }
 
@@ -141,7 +136,6 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
     }
 
     public void setDeploymentResult(@Nullable final DeploymentResult deploymentResult) {
-        this.deploymentResult = deploymentResult;
     }
 
     public void setResultsSummary(@Nullable final ResultsSummary resultsSummary) {
@@ -149,7 +143,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
     }
 
     public void setBuildLoggerManager(@Nullable final BuildLoggerManager buildLoggerManager) {
-        this.buildLoggerManager = buildLoggerManager;
+        ServerNotificationRecipient.buildLoggerManager = buildLoggerManager;
     }
 
     public static BuildLoggerManager getBuildLoggerManager() {
@@ -157,7 +151,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
     }
 
     public void setBuildLogFileAccessorFactory(@Nullable final BuildLogFileAccessorFactory buildLogFileAccessorFactory) {
-        this.buildLogFileAccessorFactory = buildLogFileAccessorFactory;
+        ServerNotificationRecipient.buildLogFileAccessorFactory = buildLogFileAccessorFactory;
     }
 
     public static BuildLogFileAccessorFactory getBuildLogFileAccessorFactory() {
