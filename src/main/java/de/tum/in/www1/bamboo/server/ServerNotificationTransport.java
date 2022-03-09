@@ -45,7 +45,6 @@ import com.atlassian.bamboo.build.logger.BuildLogFileAccessorFactory;
 import com.atlassian.bamboo.chains.ChainResultsSummary;
 import com.atlassian.bamboo.chains.ChainStageResult;
 import com.atlassian.bamboo.commit.Commit;
-import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.notification.Notification;
 import com.atlassian.bamboo.notification.NotificationTransport;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
@@ -100,12 +99,8 @@ public class ServerNotificationTransport implements NotificationTransport {
     // We are only interested in logs coming from the build, not in logs from Bamboo
     final List<Class<?>> logEntryTypes = ImmutableList.of(BuildOutputLogEntry.class, ErrorLogEntry.class);
 
-    public ServerNotificationTransport(String webhookUrl,
-            @Nullable ImmutablePlan plan,
-            @Nullable ResultsSummary resultsSummary,
-            CustomVariableContext customVariableContext,
-            BuildLoggerManager buildLoggerManager,
-            BuildLogFileAccessorFactory buildLogFileAccessorFactory) {
+    public ServerNotificationTransport(String webhookUrl, @Nullable ImmutablePlan plan, @Nullable ResultsSummary resultsSummary, CustomVariableContext customVariableContext,
+            @Nullable BuildLoggerManager buildLoggerManager, @Nullable BuildLogFileAccessorFactory buildLogFileAccessorFactory) {
         this.webhookUrl = customVariableContext.substituteString(webhookUrl);
         this.plan = plan;
         this.resultsSummary = resultsSummary;
@@ -306,8 +301,9 @@ public class ServerNotificationTransport implements NotificationTransport {
                             }
                             LoggingUtils.logInfo("Loading artifacts for job " + buildResultsSummary.getId(), buildLoggerManager, plan.getPlanKey(), log);
                             try {
-                                //TODO: it seems that getProducedArtifactLinks is a lazy Hibernate object, not loaded from the database. How can we fix this?
-                                JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
+                                // Note: we cannot directly access buildResultsSummary.getProducedArtifactLinks() because it is a lazy Hibernate collection
+                                Collection<ArtifactLink> artifactLinks = artifactLinkManager.getArtifactLinks(buildResultsSummary, null);
+                                JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(artifactLinks, buildResultsSummary.getId());
                                 jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
                             }
                             catch (Exception ex) {
