@@ -429,7 +429,8 @@ public class ServerNotificationTransport implements NotificationTransport {
         catch (IOException exception) {
             LoggingUtils.logInfo("Could not read from artifact file for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null,
                     log);
-        } catch (JSONException exception) {
+        }
+        catch (JSONException exception) {
             LoggingUtils.logInfo("Could not read parse Testwise Coverage Report for in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null,
                     log);
             LoggingUtils.logInfo(exception.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
