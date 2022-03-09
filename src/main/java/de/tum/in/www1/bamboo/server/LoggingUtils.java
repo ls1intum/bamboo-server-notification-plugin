@@ -1,10 +1,10 @@
 package de.tum.in.www1.bamboo.server;
 
+import org.apache.log4j.Logger;
+
 import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.plan.PlanKey;
-
-import org.apache.log4j.Logger;
 
 public class LoggingUtils {
 
@@ -33,7 +33,8 @@ public class LoggingUtils {
         }
         if (e != null) {
             log.error(logMessage, e);
-        } else {
+        }
+        else {
             log.error(logMessage);
         }
     }

@@ -369,11 +369,13 @@ public class ServerNotificationTransport implements NotificationTransport {
             return Optional.of(new JSONObject(reportJSON));
         }
         catch (JSONException e) {
-            LoggingUtils.logError("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log, e);
+            LoggingUtils.logError("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage(), buildLoggerManager,
+                    plan != null ? plan.getPlanKey() : null, log, e);
 
         }
         catch (ParserException e) {
-            LoggingUtils.logError("Error parsing static code analysis report " + label + ": " + e.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log, e);
+            LoggingUtils.logError("Error parsing static code analysis report " + label + ": " + e.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log,
+                    e);
         }
         return Optional.empty();
     }
@@ -393,8 +395,10 @@ public class ServerNotificationTransport implements NotificationTransport {
             ArtifactLinkDataProvider dataProvider = artifactLinkManager.getArtifactLinkDataProvider(artifact);
 
             if (dataProvider == null) {
-                LoggingUtils.logInfo("ArtifactLinkDataProvider is null for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
-                LoggingUtils.logInfo("Could not retrieve data for artifact " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
+                LoggingUtils.logInfo("ArtifactLinkDataProvider is null for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager,
+                        plan != null ? plan.getPlanKey() : null, log);
+                LoggingUtils.logInfo("Could not retrieve data for artifact " + artifact.getLabel() + " in job " + jobId, buildLoggerManager,
+                        plan != null ? plan.getPlanKey() : null, log);
                 continue;
             }
 

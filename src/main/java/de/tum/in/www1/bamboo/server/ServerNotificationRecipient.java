@@ -1,5 +1,13 @@
 package de.tum.in.www1.bamboo.server;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.logger.BuildLogFileAccessorFactory;
 import com.atlassian.bamboo.notification.NotificationRecipient;
@@ -13,17 +21,9 @@ import com.atlassian.bamboo.template.TemplateRenderer;
 import com.atlassian.bamboo.variable.CustomVariableContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ServerNotificationRecipient extends AbstractNotificationRecipient
-        implements NotificationRecipient.RequiresPlan, NotificationRecipient.RequiresResultSummary
-{
+        implements NotificationRecipient.RequiresPlan, NotificationRecipient.RequiresResultSummary {
 
     private static final String WEBHOOK_URL = "webhookUrl";
 
