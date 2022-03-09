@@ -189,8 +189,8 @@ public class ServerNotificationTransport implements NotificationTransport {
                 LoggingUtils.logError("Error while sending payload: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
             }
         }
-        catch (URISyntaxException e) {
-            LoggingUtils.logError("Error parsing webhook url: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
+        catch (Exception e) {
+            LoggingUtils.logError("Error during sendNotification: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
         }
         LoggingUtils.logInfo("finish send notification for plan", buildLoggerManager, plan.getPlanKey(), log);
     }
@@ -346,8 +346,8 @@ public class ServerNotificationTransport implements NotificationTransport {
             }
 
         }
-        catch (JSONException e) {
-            LoggingUtils.logError("JSON construction error :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
+        catch (Exception e) {
+            LoggingUtils.logError("Error during createJSONObject :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
         }
 
         LoggingUtils.logInfo("JSON object created", buildLoggerManager, plan.getPlanKey(), log);
