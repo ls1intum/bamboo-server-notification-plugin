@@ -305,9 +305,14 @@ public class ServerNotificationTransport implements NotificationTransport {
                                 LoggingUtils.logError("Could not load cached test results!", buildLoggerManager, plan.getPlanKey(), log, null);
                             }
                             LoggingUtils.logInfo("Loading artifacts for job " + buildResultsSummary.getId(), buildLoggerManager, plan.getPlanKey(), log);
-                            JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
-                            jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
-
+                            try {
+                                //TODO: it seems that getProducedArtifactLinks is a lazy Hibernate object, not loaded from the database. How can we fix this?
+                                JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
+                                jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
+                            }
+                            catch (Exception ex) {
+                                LoggingUtils.logError("Error during static code analysis report :" + ex.getMessage(), buildLoggerManager, plan.getPlanKey(), log, ex);
+                            }
                             List<LogEntry> logEntries = Collections.emptyList();
 
                             // Only add log if no tests are found (indicates a build error)
