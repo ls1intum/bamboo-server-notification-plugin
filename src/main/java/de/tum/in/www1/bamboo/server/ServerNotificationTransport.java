@@ -325,8 +325,7 @@ public class ServerNotificationTransport implements NotificationTransport {
                                     LoggingUtils.logError("Error during parsing static code analysis reports :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
                                 }
                                 try {
-                                    JSONArray testwiseCoverageReports = createTestwiseCoverageJSONObject(buildResultsSummary.getProducedArtifactLinks(),
-                                            buildResultsSummary.getId());
+                                    JSONArray testwiseCoverageReports = createTestwiseCoverageJSONObject(artifactLinks, buildResultsSummary.getId());
                                     if (testwiseCoverageReports != null) {
                                         jobDetails.put("testwiseCoverageReport", testwiseCoverageReports);
                                     }
