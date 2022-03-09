@@ -314,13 +314,30 @@ public class ServerNotificationTransport implements NotificationTransport {
                                 LoggingUtils.logError("Could not load cached test results!", buildLoggerManager, plan.getPlanKey(), log, null);
                             }
                             LoggingUtils.logInfo("Loading artifacts for job " + buildResultsSummary.getId(), buildLoggerManager, plan.getPlanKey(), log);
-                            JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
-                            jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
-                            JSONArray testwiseCoverageReports = createTestwiseCoverageJSONObject(buildResultsSummary.getProducedArtifactLinks(), buildResultsSummary.getId());
-                            if (testwiseCoverageReports != null) {
-                                jobDetails.put("testwiseCoverageReport", testwiseCoverageReports);
+                            try {
+                                // Note: we cannot directly access buildResultsSummary.getProducedArtifactLinks() because it is a lazy Hibernate collection
+                                Collection<ArtifactLink> artifactLinks = artifactLinkManager.getArtifactLinks(buildResultsSummary, null);
+                                try {
+                                    JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(artifactLinks, buildResultsSummary.getId());
+                                    jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
+                                }
+                                catch (Exception e) {
+                                    LoggingUtils.logError("Error during parsing static code analysis reports :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
+                                }
+                                try {
+                                    JSONArray testwiseCoverageReports = createTestwiseCoverageJSONObject(buildResultsSummary.getProducedArtifactLinks(),
+                                            buildResultsSummary.getId());
+                                    if (testwiseCoverageReports != null) {
+                                        jobDetails.put("testwiseCoverageReport", testwiseCoverageReports);
+                                    }
+                                }
+                                catch (Exception e) {
+                                    LoggingUtils.logError("Error during parsing testwise coverage reports :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
+                                }
                             }
-
+                            catch (Exception ex) {
+                                LoggingUtils.logError("Error during loading artifacts :" + ex.getMessage(), buildLoggerManager, plan.getPlanKey(), log, ex);
+                            }
                             List<LogEntry> logEntries = Collections.emptyList();
 
                             // Only add log if no tests are found (indicates a build error)
