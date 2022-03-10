@@ -1,21 +1,18 @@
 package de.tum.in.www1.bamboo.server;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
@@ -64,7 +61,6 @@ import com.atlassian.bamboo.variable.VariableDefinition;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.atlassian.spring.container.ContainerManager;
 import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
 
 import de.tum.in.ase.parser.ReportParser;
 import de.tum.in.ase.parser.exception.ParserException;
@@ -426,10 +422,9 @@ public class ServerNotificationTransport implements NotificationTransport {
             if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
                 FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
                 File artifactFile = fileDataProvider.getFile();
-                BufferedReader reader = Files.newBufferedReader(artifactFile.toPath());
-
-                Gson gson = new Gson();
-                return new JSONObject(gson.fromJson(reader, Map.class)).getJSONArray("tests");
+                InputStream inputStream = new FileInputStream(artifactFile.getAbsolutePath());
+                String fileContent = IOUtils.toString(inputStream, "UTF-8");
+                return new JSONObject(fileContent).getJSONArray("tests");
             }
         }
         catch (IOException exception) {
