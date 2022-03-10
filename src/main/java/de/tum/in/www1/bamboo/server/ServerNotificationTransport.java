@@ -48,7 +48,6 @@ import com.atlassian.bamboo.build.logger.BuildLogFileAccessorFactory;
 import com.atlassian.bamboo.chains.ChainResultsSummary;
 import com.atlassian.bamboo.chains.ChainStageResult;
 import com.atlassian.bamboo.commit.Commit;
-import com.atlassian.bamboo.deployments.results.DeploymentResult;
 import com.atlassian.bamboo.notification.Notification;
 import com.atlassian.bamboo.notification.NotificationTransport;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
@@ -85,39 +84,30 @@ public class ServerNotificationTransport implements NotificationTransport {
     private final ResultsSummary resultsSummary;
 
     @Nullable
-    private final DeploymentResult deploymentResult;
-
-    @Nullable
     private final BuildLoggerManager buildLoggerManager;
 
     @Nullable
     private final BuildLogFileAccessorFactory buildLogFileAccessorFactory;
 
     // Will be injected by Bamboo
-    private VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager");
+    private final VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager");
 
-    private ArtifactLinkManager artifactLinkManager = (ArtifactLinkManager) ContainerManager.getComponent("artifactLinkManager");
+    private final ArtifactLinkManager artifactLinkManager = (ArtifactLinkManager) ContainerManager.getComponent("artifactLinkManager");
 
     // Maximum length for the feedback text. The feedback will be truncated afterwards
-    private static int FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS = 5000;
+    private static final int FEEDBACK_DETAIL_TEXT_MAX_CHARACTERS = 5000;
 
     // Maximum number of lines of log per job. The last lines will be taken.
-    private static int JOB_LOG_MAX_LINES = 5000;
+    private static final int JOB_LOG_MAX_LINES = 5000;
 
     // We are only interested in logs coming from the build, not in logs from Bamboo
     final List<Class<?>> logEntryTypes = ImmutableList.of(BuildOutputLogEntry.class, ErrorLogEntry.class);
 
-    public ServerNotificationTransport(String webhookUrl,
-            @Nullable ImmutablePlan plan,
-            @Nullable ResultsSummary resultsSummary,
-            @Nullable DeploymentResult deploymentResult,
-            CustomVariableContext customVariableContext,
-            BuildLoggerManager buildLoggerManager,
-            BuildLogFileAccessorFactory buildLogFileAccessorFactory) {
+    public ServerNotificationTransport(String webhookUrl, @Nullable ImmutablePlan plan, @Nullable ResultsSummary resultsSummary, CustomVariableContext customVariableContext,
+            @Nullable BuildLoggerManager buildLoggerManager, @Nullable BuildLogFileAccessorFactory buildLogFileAccessorFactory) {
         this.webhookUrl = customVariableContext.substituteString(webhookUrl);
         this.plan = plan;
         this.resultsSummary = resultsSummary;
-        this.deploymentResult = deploymentResult;
         this.buildLoggerManager = buildLoggerManager;
         this.buildLogFileAccessorFactory = buildLogFileAccessorFactory;
 
@@ -164,15 +154,15 @@ public class ServerNotificationTransport implements NotificationTransport {
 
                 LoggingUtils.logInfo("Call executed", buildLoggerManager, plan.getPlanKey(), log);
                 if (closeableHttpResponse != null) {
-                    LoggingUtils.logInfo("Response is not null: " + closeableHttpResponse.toString(), buildLoggerManager, plan.getPlanKey(), log);
+                    LoggingUtils.logInfo("Response is not null: " + closeableHttpResponse, buildLoggerManager, plan.getPlanKey(), log);
 
                     StatusLine statusLine = closeableHttpResponse.getStatusLine();
                     if (statusLine != null) {
-                        LoggingUtils.logInfo("StatusLine is not null: " + statusLine.toString(), buildLoggerManager, plan.getPlanKey(), log);
+                        LoggingUtils.logInfo("StatusLine is not null: " + statusLine, buildLoggerManager, plan.getPlanKey(), log);
                         LoggingUtils.logInfo("StatusCode is: " + statusLine.getStatusCode(), buildLoggerManager, plan.getPlanKey(), log);
                     }
                     else {
-                        LoggingUtils.logInfo("Statusline is null" + closeableHttpResponse.toString(), buildLoggerManager, plan.getPlanKey(), log);
+                        LoggingUtils.logInfo("Statusline is null" + closeableHttpResponse, buildLoggerManager, plan.getPlanKey(), log);
                     }
 
                     HttpEntity httpEntity = closeableHttpResponse.getEntity();
@@ -193,8 +183,8 @@ public class ServerNotificationTransport implements NotificationTransport {
                 LoggingUtils.logError("Error while sending payload: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
             }
         }
-        catch (URISyntaxException e) {
-            LoggingUtils.logError("Error parsing webhook url: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
+        catch (Exception e) {
+            LoggingUtils.logError("Error during sendNotification: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
         }
         LoggingUtils.logInfo("finish send notification for plan", buildLoggerManager, plan.getPlanKey(), log);
     }
@@ -370,8 +360,8 @@ public class ServerNotificationTransport implements NotificationTransport {
             }
 
         }
-        catch (JSONException e) {
-            LoggingUtils.logError("JSON construction error :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
+        catch (Exception e) {
+            LoggingUtils.logError("Error during createJSONObject :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
         }
 
         LoggingUtils.logInfo("JSON object created", buildLoggerManager, plan.getPlanKey(), log);
