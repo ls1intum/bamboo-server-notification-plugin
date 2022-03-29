@@ -317,7 +317,7 @@ public class ServerNotificationTransport implements NotificationTransport {
                                     }
                                 }
                                 catch (Exception e) {
-                                    LoggingUtils.logError("Error during parsing testwise coverage reports :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
+                                    LoggingUtils.logError("Error during parsing testwise coverage report :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
                                 }
                             }
                             catch (Exception ex) {
@@ -401,7 +401,7 @@ public class ServerNotificationTransport implements NotificationTransport {
      * @return a JSONArray containing all testwise coverage reports if this artifact exists, otherwise null
      */
     private JSONArray createTestwiseCoverageJSONObject(Collection<ArtifactLink> artifactLinks, long jobId) {
-        Optional<ArtifactLink> optionalArtifactLink = artifactLinks.stream().filter(artifact -> "coverageResults".equals(artifact.getArtifact().getLabel())).findFirst();
+        Optional<ArtifactLink> optionalArtifactLink = artifactLinks.stream().filter(artifact -> "testwiseCoverageReport".equals(artifact.getArtifact().getLabel())).findFirst();
 
         if (!optionalArtifactLink.isPresent()) {
             return null;
