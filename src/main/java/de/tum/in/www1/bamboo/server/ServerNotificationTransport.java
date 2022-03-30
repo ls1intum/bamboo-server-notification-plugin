@@ -1,7 +1,6 @@
 package de.tum.in.www1.bamboo.server;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
@@ -303,11 +303,25 @@ public class ServerNotificationTransport implements NotificationTransport {
                             try {
                                 // Note: we cannot directly access buildResultsSummary.getProducedArtifactLinks() because it is a lazy Hibernate collection
                                 Collection<ArtifactLink> artifactLinks = artifactLinkManager.getArtifactLinks(buildResultsSummary, null);
-                                JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(artifactLinks, buildResultsSummary.getId());
-                                jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
+                                try {
+                                    JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(artifactLinks, buildResultsSummary.getId());
+                                    jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
+                                }
+                                catch (Exception e) {
+                                    LoggingUtils.logError("Error during parsing static code analysis reports :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
+                                }
+                                try {
+                                    JSONArray testwiseCoverageReport = createTestwiseCoverageJSONObject(artifactLinks, buildResultsSummary.getId());
+                                    if (testwiseCoverageReport != null) {
+                                        jobDetails.put("testwiseCoverageReport", testwiseCoverageReport);
+                                    }
+                                }
+                                catch (Exception e) {
+                                    LoggingUtils.logError("Error during parsing testwise coverage report :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
+                                }
                             }
                             catch (Exception ex) {
-                                LoggingUtils.logError("Error during static code analysis report :" + ex.getMessage(), buildLoggerManager, plan.getPlanKey(), log, ex);
+                                LoggingUtils.logError("Error during loading artifacts :" + ex.getMessage(), buildLoggerManager, plan.getPlanKey(), log, ex);
                             }
                             List<LogEntry> logEntries = Collections.emptyList();
 
@@ -378,6 +392,51 @@ public class ServerNotificationTransport implements NotificationTransport {
                     e);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Find and returns a JSONArray from the testwise coverage reports if exists
+     * @param artifactLinks all artifact links from the build to search in
+     * @param jobId the job id
+     * @return a JSONArray containing all testwise coverage reports if this artifact exists, otherwise null
+     */
+    private JSONArray createTestwiseCoverageJSONObject(Collection<ArtifactLink> artifactLinks, long jobId) {
+        Optional<ArtifactLink> optionalArtifactLink = artifactLinks.stream().filter(artifact -> "testwiseCoverageReport".equals(artifact.getArtifact().getLabel())).findFirst();
+
+        if (!optionalArtifactLink.isPresent()) {
+            return null;
+        }
+
+        MutableArtifact artifact = optionalArtifactLink.get().getArtifact();
+        ArtifactLinkDataProvider dataProvider = artifactLinkManager.getArtifactLinkDataProvider(artifact);
+
+        if (dataProvider == null) {
+            LoggingUtils.logInfo("ArtifactLinkDataProvider is null for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null,
+                    log);
+            LoggingUtils.logInfo("Could not retrieve data for artifact " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null,
+                    log);
+            return null;
+        }
+
+        try {
+            if (dataProvider instanceof FileSystemArtifactLinkDataProvider) {
+                FileSystemArtifactLinkDataProvider fileDataProvider = (FileSystemArtifactLinkDataProvider) dataProvider;
+                File artifactFile = fileDataProvider.getFile();
+                InputStream inputStream = new FileInputStream(artifactFile.getAbsolutePath());
+                String fileContent = IOUtils.toString(inputStream, "UTF-8");
+                return new JSONObject(fileContent).getJSONArray("tests");
+            }
+        }
+        catch (IOException exception) {
+            LoggingUtils.logInfo("Could not read from artifact file for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null,
+                    log);
+        }
+        catch (JSONException exception) {
+            LoggingUtils.logInfo("Could not read parse Testwise Coverage Report for in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null,
+                    log);
+            LoggingUtils.logInfo(exception.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
+        }
+        return null;
     }
 
     private JSONArray createStaticCodeAnalysisReportArray(Collection<ArtifactLink> artifactLinks, long jobId) {
