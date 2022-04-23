@@ -35,6 +35,7 @@ public class BuildCompleteListener {
         ServerNotificationRecipient.clearOldTestResultsContainer();
         long containerClearTime = System.currentTimeMillis() - startTime;
         LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString() + " - Cleared old test results container took " + containerClearTime + "ms", null, postBuildCompletedEvent.getPlanKey(), log);
+        LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString() + " - Number of entries in cache: " + ServerNotificationRecipient.getCachedTestResults().size(), null, postBuildCompletedEvent.getPlanKey(), log);
     }
 
 }
