@@ -370,7 +370,7 @@ public class ServerNotificationTransport implements NotificationTransport {
          * Ignore artifact definitions matching multiple files.
          */
         // TODO: Support artifact definitions matching multiple files
-        if (rootFile == null || rootFile.isDirectory()) {
+        if (rootFile == null || rootFile.length() == 0 || rootFile.isDirectory()) {
             return Optional.empty();
         }
 
