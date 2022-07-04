@@ -283,7 +283,11 @@ public class ServerNotificationTransport implements NotificationTransport {
                             LoggingUtils.logInfo("Loading cached test results for job " + buildResultsSummary.getId(), buildLoggerManager, plan.getPlanKey(), log);
                             ResultsContainer resultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
                             if (resultsContainer != null) {
-                                LoggingUtils.logInfo("Tests results found", buildLoggerManager, plan.getPlanKey(), log);
+                                // We just extracted the ResultsContainer, so we can clear it from the map now.
+                                ServerNotificationRecipient.getCachedTestResults().remove(buildResultsSummary.getPlanResultKey().toString());
+                                long secondsInMap = (System.currentTimeMillis() - resultsContainer.getInitTimestamp()) / 1000;
+
+                                LoggingUtils.logInfo("Tests results found - was in map for " + secondsInMap + " seconds", buildLoggerManager, plan.getPlanKey(), log);
                                 JSONArray successfulTestDetails = createTestsResultsJSONArray(resultsContainer.getSuccessfulTests(), false);
                                 jobDetails.put("successfulTests", successfulTestDetails);
 

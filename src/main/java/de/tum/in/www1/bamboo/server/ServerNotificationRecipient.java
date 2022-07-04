@@ -42,7 +42,7 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
     private static BuildLogFileAccessorFactory buildLogFileAccessorFactory;
 
     // Time in seconds before removing ResultsContainer
-    private static final int TESTRESULTSCONTAINER_REMOVE_TIME = 60;
+    private static final int TESTRESULTSCONTAINER_REMOVE_TIME = 600;
 
     /*
      * The TestResults of successful tests can not be loaded from the ChainResultSummary (only failing ones can).
