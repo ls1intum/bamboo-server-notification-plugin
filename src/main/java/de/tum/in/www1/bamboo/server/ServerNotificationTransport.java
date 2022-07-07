@@ -372,9 +372,10 @@ public class ServerNotificationTransport implements NotificationTransport {
         /*
          * The rootFile is a directory if the copy pattern matches multiple files, otherwise it is a regular file.
          * Ignore artifact definitions matching multiple files.
+         * Also, ignore empty (0-byte) files since they cause parsing errors since they are invalid XML.
          */
         // TODO: Support artifact definitions matching multiple files
-        if (rootFile == null || rootFile.isDirectory()) {
+        if (rootFile == null || rootFile.length() == 0 || rootFile.isDirectory()) {
             return Optional.empty();
         }
 
