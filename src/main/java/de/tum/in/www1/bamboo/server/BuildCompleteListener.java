@@ -4,12 +4,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
-import com.atlassian.bamboo.vcs.configuration.VcsBranchDefinition;
 import org.apache.log4j.Logger;
 
 import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.v2.build.events.PostBuildCompletedEvent;
+import com.atlassian.bamboo.vcs.configuration.PlanRepositoryDefinition;
+import com.atlassian.bamboo.vcs.configuration.VcsBranchDefinition;
 import com.atlassian.event.api.EventListener;
 
 public class BuildCompleteListener {
@@ -22,7 +22,8 @@ public class BuildCompleteListener {
         LoggingUtils.logInfo("onPostBuildComplete: " + postBuildCompletedEvent.getPlanResultKey().toString(), null, postBuildCompletedEvent.getPlanKey(), log);
         CurrentBuildResult currentBuildResult = postBuildCompletedEvent.getContext().getBuildResult();
 
-        // We can only access the branch names of the repository from the BuildContext -> Extract it here and add it to the ResultContainer, so that it can be extracted from the ServerNotificationTransport
+        // We can only access the branch names of the repository from the BuildContext -> Extract it here and add it to the ResultContainer, so that it can be extracted from the
+        // ServerNotificationTransport
         Map<String, String> repositoryToBranchMap = new HashMap<>();
         for (PlanRepositoryDefinition repository : postBuildCompletedEvent.getContext().getVcsRepositories()) {
             VcsBranchDefinition vcsBranchDefinition = repository.getBranch();
