@@ -220,8 +220,6 @@ public class ServerNotificationTransport implements NotificationTransport {
             if (plan != null) {
                 JSONObject planDetails = new JSONObject();
                 planDetails.put("key", plan.getPlanKey());
-                // LoggingUtils.logError(, buildLoggerManager, plan.getPlanKey(), log, null);
-                // defaultRepositoryDef = BuildContextHelper.getDefaultPlanRepositoryDefinition();
 
                 jsonObject.put("plan", planDetails);
             }
