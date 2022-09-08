@@ -74,14 +74,16 @@ Sample request
 
         ],
         "id":"f4158f583a02dc3b9bda47e64749fdbf7e9bdcef",
-        "repositoryName":"Assignment"
+        "repositoryName":"Assignment",
+        "branchName": "main"
       },
       {
         "commits":[
 
         ],
         "id":"9be1bb278e08d03ab2519b746702196cead996be",
-        "repositoryName":"tests"
+        "repositoryName":"tests",
+        "branchName": "main"
       }
     ],
     "jobs":[
