@@ -6,11 +6,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -85,6 +81,9 @@ public class ServerNotificationTransport implements NotificationTransport {
     @Nullable
     private final BuildLogFileAccessorFactory buildLogFileAccessorFactory;
 
+    @Nullable
+    private final CustomVariableContext customVariableContext;
+
     // Will be injected by Bamboo
     private final VariableDefinitionManager variableDefinitionManager = (VariableDefinitionManager) ContainerManager.getComponent("variableDefinitionManager");
 
@@ -106,6 +105,7 @@ public class ServerNotificationTransport implements NotificationTransport {
         this.resultsSummary = resultsSummary;
         this.buildLoggerManager = buildLoggerManager;
         this.buildLogFileAccessorFactory = buildLogFileAccessorFactory;
+        this.customVariableContext = customVariableContext;
 
         URI uri;
         try {
@@ -250,6 +250,11 @@ public class ServerNotificationTransport implements NotificationTransport {
 
                 buildDetails.put("testSummary", testResultOverview);
 
+                // The branch name can only be accessed from the ResultsContainer -> We can only add it later to the changesetDetails JSONObject.
+                // As we can not access it easily from the vcsDetails JSONArray, we keep a reference to the changesetDetails JSONObject, which will later be used to
+                // get the correct changesetDetails JSONObject based on the repository name
+                Map<String, JSONObject> repositoryToVcsDetails = new HashMap<>();
+
                 JSONArray vcsDetails = new JSONArray();
                 for (RepositoryChangeset changeset : resultsSummary.getRepositoryChangesets()) {
                     JSONObject changesetDetails = new JSONObject();
@@ -268,6 +273,8 @@ public class ServerNotificationTransport implements NotificationTransport {
                     changesetDetails.put("commits", commits);
 
                     vcsDetails.put(changesetDetails);
+                    // Put a reference to later access it when adding the branch name
+                    repositoryToVcsDetails.put(changeset.getRepositoryData().getName(), changesetDetails);
                 }
                 buildDetails.put("vcs", vcsDetails);
 
@@ -299,6 +306,14 @@ public class ServerNotificationTransport implements NotificationTransport {
 
                                 JSONArray taskResults = createTasksJSONArray(resultsContainer.getTaskResults());
                                 jobDetails.put("tasks", taskResults);
+
+                                // Put the branch name in the referenced changesetDetails JSONObject
+                                for (Map.Entry<String, String> repositoryToBranchEntry : resultsContainer.getRepositoryToBranchMap().entrySet()) {
+                                    JSONObject changesetDetails = repositoryToVcsDetails.get(repositoryToBranchEntry.getKey());
+                                    if (changesetDetails != null) {
+                                        changesetDetails.put("branchName", repositoryToBranchEntry.getValue());
+                                    }
+                                }
                             }
                             else {
                                 LoggingUtils.logError("Could not load cached test results!", buildLoggerManager, plan.getPlanKey(), log, null);

@@ -1,6 +1,7 @@
 package de.tum.in.www1.bamboo.server;
 
 import java.util.Collection;
+import java.util.Map;
 
 import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.results.tests.TestResults;
@@ -20,13 +21,16 @@ public class ResultsContainer {
 
     private final Collection<TaskResult> taskResults;
 
+    private final Map<String, String> repositoryToBranchMap;
+
     public ResultsContainer(PlanResultKey planResultKey, Collection<TestResults> successfulTests, Collection<TestResults> skippedTests, Collection<TestResults> failedTests,
-            Collection<TaskResult> taskResults) {
+            Collection<TaskResult> taskResults, Map<String, String> repositoryToBranchMap) {
         this.planResultKey = planResultKey;
         this.successfulTests = successfulTests;
         this.skippedTests = skippedTests;
         this.failedTests = failedTests;
         this.taskResults = taskResults;
+        this.repositoryToBranchMap = repositoryToBranchMap;
     }
 
     public PlanResultKey getPlanResultKey() {
@@ -53,6 +57,10 @@ public class ResultsContainer {
         return taskResults;
     }
 
+    public Map<String, String> getRepositoryToBranchMap() {
+        return repositoryToBranchMap;
+    }
+
     @Override
     public String toString() {
         return "ResultsContainer{" +
@@ -62,6 +70,7 @@ public class ResultsContainer {
                 ", skippedTests=" + skippedTests +
                 ", failedTests=" + failedTests +
                 ", taskResults=" + taskResults +
+                ", repositoriesToBranchMap=" + repositoryToBranchMap.toString() +
                 '}';
     }
 }
