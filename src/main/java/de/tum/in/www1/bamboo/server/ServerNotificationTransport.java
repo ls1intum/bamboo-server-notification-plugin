@@ -29,8 +29,6 @@ import org.json.JSONObject;
 
 import com.atlassian.bamboo.artifact.MutableArtifact;
 import com.atlassian.bamboo.build.BuildLoggerManager;
-import com.atlassian.bamboo.build.BuildOutputLogEntry;
-import com.atlassian.bamboo.build.ErrorLogEntry;
 import com.atlassian.bamboo.build.LogEntry;
 import com.atlassian.bamboo.build.artifact.ArtifactLink;
 import com.atlassian.bamboo.build.artifact.ArtifactLinkDataProvider;
