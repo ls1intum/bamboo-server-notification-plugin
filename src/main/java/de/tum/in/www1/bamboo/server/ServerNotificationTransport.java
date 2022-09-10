@@ -29,8 +29,6 @@ import org.json.JSONObject;
 
 import com.atlassian.bamboo.artifact.MutableArtifact;
 import com.atlassian.bamboo.build.BuildLoggerManager;
-import com.atlassian.bamboo.build.BuildOutputLogEntry;
-import com.atlassian.bamboo.build.ErrorLogEntry;
 import com.atlassian.bamboo.build.LogEntry;
 import com.atlassian.bamboo.build.artifact.ArtifactLink;
 import com.atlassian.bamboo.build.artifact.ArtifactLinkDataProvider;
@@ -96,7 +94,7 @@ public class ServerNotificationTransport implements NotificationTransport {
     private static final int JOB_LOG_MAX_LINES = 5000;
 
     // We are only interested in logs coming from the build, not in logs from Bamboo
-    final List<Class<?>> logEntryTypes = ImmutableList.of(BuildOutputLogEntry.class, ErrorLogEntry.class);
+    final List<Class<?>> logEntryTypes = ImmutableList.of(LogEntry.class);
 
     public ServerNotificationTransport(String webhookUrl, @Nullable ImmutablePlan plan, @Nullable ResultsSummary resultsSummary, CustomVariableContext customVariableContext,
             @Nullable BuildLoggerManager buildLoggerManager, @Nullable BuildLogFileAccessorFactory buildLogFileAccessorFactory) {
@@ -344,18 +342,16 @@ public class ServerNotificationTransport implements NotificationTransport {
                             }
                             List<LogEntry> logEntries = Collections.emptyList();
 
-                            // Only add log if no tests are found (indicates a build error)
-                            if (testResultsSummary.getTotalTestCaseCount() == 0) {
-                                // Loading logs for job
-                                try {
-                                    final BuildLogFileAccessor fileAccessor = this.buildLogFileAccessorFactory.createBuildLogFileAccessor(buildResultsSummary.getPlanResultKey());
-                                    logEntries = fileAccessor.getLastNLogsOfType(JOB_LOG_MAX_LINES, logEntryTypes);
-                                    LoggingUtils.logInfo("Found: " + logEntries.size() + " LogEntries", buildLoggerManager, plan.getPlanKey(), log);
-                                }
-                                catch (IOException ex) {
-                                    LoggingUtils.logError("Error while loading build log: " + ex.getMessage(), buildLoggerManager, plan.getPlanKey(), log, ex);
-                                }
+                            // Loading logs for job
+                            try {
+                                final BuildLogFileAccessor fileAccessor = this.buildLogFileAccessorFactory.createBuildLogFileAccessor(buildResultsSummary.getPlanResultKey());
+                                logEntries = fileAccessor.getLastNLogsOfType(JOB_LOG_MAX_LINES, logEntryTypes);
+                                LoggingUtils.logInfo("Found: " + logEntries.size() + " LogEntries", buildLoggerManager, plan.getPlanKey(), log);
                             }
+                            catch (IOException ex) {
+                                LoggingUtils.logError("Error while loading build log: " + ex.getMessage(), buildLoggerManager, plan.getPlanKey(), log, ex);
+                            }
+
                             JSONArray logEntriesArray = new JSONArray();
                             for (LogEntry logEntry : logEntries) {
                                 // A lambda here would require us to catch the JSONException inside the lambda, so we use a loop.
