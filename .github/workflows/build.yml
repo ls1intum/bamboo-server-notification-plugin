@@ -14,7 +14,7 @@ on:
       - '!.github/workflows/**'
 
 env:
-  java: 1.8
+  java: 11
 
 jobs:
 
