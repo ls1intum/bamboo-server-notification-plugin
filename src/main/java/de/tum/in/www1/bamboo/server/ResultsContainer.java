@@ -1,7 +1,7 @@
 package de.tum.in.www1.bamboo.server;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.results.tests.TestResults;
@@ -13,25 +13,24 @@ public class ResultsContainer {
 
     private final long initTimestamp = System.currentTimeMillis();
 
-    private Collection<TestResults> successfulTests = new ArrayList<>();
+    private final Collection<TestResults> successfulTests;
 
-    private Collection<TestResults> skippedTests = new ArrayList<>();
+    private final Collection<TestResults> skippedTests;
 
-    private Collection<TestResults> failedTests = new ArrayList<>();
+    private final Collection<TestResults> failedTests;
 
-    private Collection<TaskResult> taskResults = new ArrayList<>();
+    private final Collection<TaskResult> taskResults;
 
-    public ResultsContainer(PlanResultKey planResultKey) {
-        this.planResultKey = planResultKey;
-    }
+    private final Map<String, String> repositoryToBranchMap;
 
     public ResultsContainer(PlanResultKey planResultKey, Collection<TestResults> successfulTests, Collection<TestResults> skippedTests, Collection<TestResults> failedTests,
-            Collection<TaskResult> taskResults) {
+            Collection<TaskResult> taskResults, Map<String, String> repositoryToBranchMap) {
         this.planResultKey = planResultKey;
         this.successfulTests = successfulTests;
         this.skippedTests = skippedTests;
         this.failedTests = failedTests;
         this.taskResults = taskResults;
+        this.repositoryToBranchMap = repositoryToBranchMap;
     }
 
     public PlanResultKey getPlanResultKey() {
@@ -58,6 +57,10 @@ public class ResultsContainer {
         return taskResults;
     }
 
+    public Map<String, String> getRepositoryToBranchMap() {
+        return repositoryToBranchMap;
+    }
+
     @Override
     public String toString() {
         return "ResultsContainer{" +
@@ -67,6 +70,7 @@ public class ResultsContainer {
                 ", skippedTests=" + skippedTests +
                 ", failedTests=" + failedTests +
                 ", taskResults=" + taskResults +
+                ", repositoriesToBranchMap=" + repositoryToBranchMap.toString() +
                 '}';
     }
 }
