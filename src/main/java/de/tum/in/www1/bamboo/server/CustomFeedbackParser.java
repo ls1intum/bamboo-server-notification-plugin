@@ -24,10 +24,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CustomFeedbackParser {
 
-    private static final Logger log = Logger.getLogger(ServerNotificationTransport.class);
+    private static final Logger log = Logger.getLogger(CustomFeedbackParser.class);
 
     // The label of the artifact defined in the Bamboo build plan
-    private final String CUSTOM_FEEDBACK_ARTIFACT_LABEL = "customFeedbacks";
+    private static final String CUSTOM_FEEDBACK_ARTIFACT_LABEL = "customFeedbacks";
 
     private final ArtifactLinkManager artifactLinkManager;
 
