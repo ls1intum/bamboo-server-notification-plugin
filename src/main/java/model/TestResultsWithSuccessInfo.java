@@ -1,5 +1,9 @@
 package model;
 
+import java.util.Objects;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.atlassian.bamboo.results.tests.TestResults;
 
 public class TestResultsWithSuccessInfo extends TestResults {
@@ -19,6 +23,15 @@ public class TestResultsWithSuccessInfo extends TestResults {
     }
 
     public boolean hasSuccessMessage() {
-        return successMessage != null && !this.successMessage.trim().isEmpty();
+        return StringUtils.isNotBlank(successMessage);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof TestResultsWithSuccessInfo)) {
+            return false;
+        }
+        TestResultsWithSuccessInfo other = (TestResultsWithSuccessInfo) o;
+        return super.equals(o) && Objects.equals(successMessage, other.successMessage);
     }
 }
