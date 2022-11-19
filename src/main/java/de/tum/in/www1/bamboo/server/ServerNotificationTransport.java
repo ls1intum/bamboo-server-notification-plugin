@@ -102,7 +102,7 @@ public class ServerNotificationTransport implements NotificationTransport {
     private final CustomFeedbackParser customFeedbackParser;
 
     public ServerNotificationTransport(String webhookUrl, @Nullable ImmutablePlan plan, @Nullable ResultsSummary resultsSummary, CustomVariableContext customVariableContext,
-                                       @Nullable BuildLoggerManager buildLoggerManager, @Nullable BuildLogFileAccessorFactory buildLogFileAccessorFactory) {
+            @Nullable BuildLoggerManager buildLoggerManager, @Nullable BuildLogFileAccessorFactory buildLogFileAccessorFactory) {
         this.webhookUrl = customVariableContext.substituteString(webhookUrl);
         this.plan = plan;
         this.resultsSummary = resultsSummary;
@@ -114,7 +114,8 @@ public class ServerNotificationTransport implements NotificationTransport {
         URI uri;
         try {
             uri = new URI(webhookUrl);
-        } catch (URISyntaxException e) {
+        }
+        catch (URISyntaxException e) {
             LoggingUtils.logError("Unable to set up proxy settings, invalid URI encountered: " + e, buildLoggerManager, plan.getPlanKey(), log, e);
             return;
         }
@@ -124,7 +125,8 @@ public class ServerNotificationTransport implements NotificationTransport {
             HttpHost proxy = new HttpHost(proxyForScheme.host, proxyForScheme.port);
             DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
             this.client = HttpClients.custom().setRoutePlanner(routePlanner).build();
-        } else {
+        }
+        else {
             this.client = HttpClients.createDefault();
         }
     }
@@ -137,7 +139,8 @@ public class ServerNotificationTransport implements NotificationTransport {
             try {
                 String secret = (String) jsonObject.get("secret");
                 method.addHeader("Authorization", secret);
-            } catch (JSONException e) {
+            }
+            catch (JSONException e) {
                 LoggingUtils.logError("Error while getting secret from JSONObject: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
             }
 
@@ -157,7 +160,8 @@ public class ServerNotificationTransport implements NotificationTransport {
                     if (statusLine != null) {
                         LoggingUtils.logInfo("StatusLine is not null: " + statusLine, buildLoggerManager, plan.getPlanKey(), log);
                         LoggingUtils.logInfo("StatusCode is: " + statusLine.getStatusCode(), buildLoggerManager, plan.getPlanKey(), log);
-                    } else {
+                    }
+                    else {
                         LoggingUtils.logInfo("Statusline is null" + closeableHttpResponse, buildLoggerManager, plan.getPlanKey(), log);
                     }
 
@@ -166,16 +170,20 @@ public class ServerNotificationTransport implements NotificationTransport {
                         String response = EntityUtils.toString(httpEntity);
                         LoggingUtils.logInfo("Response from entity is: " + response, buildLoggerManager, plan.getPlanKey(), log);
                         EntityUtils.consume(httpEntity);
-                    } else {
+                    }
+                    else {
                         LoggingUtils.logError("Httpentity is null", buildLoggerManager, plan.getPlanKey(), log, null);
                     }
-                } else {
+                }
+                else {
                     LoggingUtils.logError("Response is null", buildLoggerManager, plan.getPlanKey(), log, null);
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 LoggingUtils.logError("Error while sending payload: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             LoggingUtils.logError("Error during sendNotification: " + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
         }
         LoggingUtils.logInfo("finish send notification for plan", buildLoggerManager, plan.getPlanKey(), log);
@@ -199,12 +207,14 @@ public class ServerNotificationTransport implements NotificationTransport {
                         .findFirst();
                 if (optionalVariableDefinition.isPresent()) {
                     jsonObject.put("secret", optionalVariableDefinition.get().getValue()); // Used to verify that the request is coming from a legitimate server
-                } else {
+                }
+                else {
                     jsonObject.put("secret", "SERVER_PLUGIN_SECRET_PASSWORD-NOT-DEFINED");
                     LoggingUtils.logError("Variable SERVER_PLUGIN_SECRET_PASSWORD is not defined", buildLoggerManager, plan.getPlanKey(), log, null);
                 }
 
-            } else {
+            }
+            else {
                 jsonObject.put("secret", "NO-GLOBAL-VARIABLES-ARE-DEFINED");
                 LoggingUtils.logError("No global variables are defined", buildLoggerManager, plan.getPlanKey(), log, null);
             }
@@ -318,7 +328,8 @@ public class ServerNotificationTransport implements NotificationTransport {
                                 try {
                                     JSONArray staticCodeAnalysisReports = createStaticCodeAnalysisReportArray(artifactLinks, buildResultsSummary.getId());
                                     jobDetails.put("staticCodeAnalysisReports", staticCodeAnalysisReports);
-                                } catch (Exception e) {
+                                }
+                                catch (Exception e) {
                                     LoggingUtils.logError("Error during parsing static code analysis reports :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
                                 }
                                 try {
@@ -326,10 +337,12 @@ public class ServerNotificationTransport implements NotificationTransport {
                                     if (testwiseCoverageReport != null) {
                                         jobDetails.put("testwiseCoverageReport", testwiseCoverageReport);
                                     }
-                                } catch (Exception e) {
+                                }
+                                catch (Exception e) {
                                     LoggingUtils.logError("Error during parsing testwise coverage report :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
                                 }
-                            } catch (Exception ex) {
+                            }
+                            catch (Exception ex) {
                                 LoggingUtils.logError("Error during loading artifacts :" + ex.getMessage(), buildLoggerManager, plan.getPlanKey(), log, ex);
                             }
                             List<LogEntry> logEntries = Collections.emptyList();
@@ -339,7 +352,8 @@ public class ServerNotificationTransport implements NotificationTransport {
                                 final BuildLogFileAccessor fileAccessor = this.buildLogFileAccessorFactory.createBuildLogFileAccessor(buildResultsSummary.getPlanResultKey());
                                 logEntries = fileAccessor.getLastNLogsOfType(JOB_LOG_MAX_LINES, logEntryTypes);
                                 LoggingUtils.logInfo("Found: " + logEntries.size() + " LogEntries", buildLoggerManager, plan.getPlanKey(), log);
-                            } catch (IOException ex) {
+                            }
+                            catch (IOException ex) {
                                 LoggingUtils.logError("Error while loading build log: " + ex.getMessage(), buildLoggerManager, plan.getPlanKey(), log, ex);
                             }
 
@@ -384,7 +398,8 @@ public class ServerNotificationTransport implements NotificationTransport {
                 buildDetails.put("testSummary", testResultOverview);
 
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             LoggingUtils.logError("Error during createJSONObject :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
         }
 
@@ -410,11 +425,13 @@ public class ServerNotificationTransport implements NotificationTransport {
 
             String reportJSON = reportParser.transformToJSONReport(rootFile);
             return Optional.of(new JSONObject(reportJSON));
-        } catch (JSONException e) {
+        }
+        catch (JSONException e) {
             LoggingUtils.logError("Error constructing artifact JSON for artifact definition " + label + ": " + e.getMessage(), buildLoggerManager,
                     plan != null ? plan.getPlanKey() : null, log, e);
 
-        } catch (ParserException e) {
+        }
+        catch (ParserException e) {
             LoggingUtils.logError("Error parsing static code analysis report " + label + ": " + e.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log,
                     e);
         }
@@ -454,10 +471,12 @@ public class ServerNotificationTransport implements NotificationTransport {
                 String fileContent = IOUtils.toString(inputStream, "UTF-8");
                 return new JSONObject(fileContent).getJSONArray("tests");
             }
-        } catch (IOException exception) {
+        }
+        catch (IOException exception) {
             LoggingUtils.logInfo("Could not read from artifact file for " + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null,
                     log);
-        } catch (JSONException exception) {
+        }
+        catch (JSONException exception) {
             LoggingUtils.logInfo("Could not read parse Testwise Coverage Report for in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null,
                     log);
             LoggingUtils.logInfo(exception.getMessage(), buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
@@ -499,7 +518,8 @@ public class ServerNotificationTransport implements NotificationTransport {
                     Optional<JSONObject> optionalReport = createStaticCodeAnalysisReportJSONObject(artifactFile, artifact.getLabel());
                     optionalReport.ifPresent(artifactJSONObjects::add);
                 }
-            } else {
+            }
+            else {
                 LoggingUtils.logError("Unsupported artifact handler configuration encountered for artifact "
                         + artifact.getLabel() + " in job " + jobId, buildLoggerManager, plan != null ? plan.getPlanKey() : null, log, null);
             }
@@ -539,7 +559,7 @@ public class ServerNotificationTransport implements NotificationTransport {
     }
 
     private JSONArray createTestsResultsJSONArray(Collection<TestResults> testResultsCollection,
-                                                  boolean addErrors) throws JSONException {
+            boolean addErrors) throws JSONException {
         LoggingUtils.logInfo("Creating test results JSON array", buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
         JSONArray testResultsArray = new JSONArray();
         for (TestResults testResults : testResultsCollection) {

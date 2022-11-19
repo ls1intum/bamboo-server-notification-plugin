@@ -30,7 +30,7 @@
         <atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
         <platform.version>4.0.0</platform.version>
         <jackson.version>2.13.2</jackson.version>
-        <spotless.version>2.21.0</spotless.version>
+        <spotless.version>2.27.2</spotless.version>
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
         <mockito.version>4.3.1</mockito.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
