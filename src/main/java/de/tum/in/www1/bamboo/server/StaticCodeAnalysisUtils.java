@@ -4,7 +4,7 @@ import org.apache.commons.io.FilenameUtils;
 
 public class StaticCodeAnalysisUtils {
 
-    private StaticCodeAnalysisUtils(){
+    private StaticCodeAnalysisUtils() {
     }
 
     /**
