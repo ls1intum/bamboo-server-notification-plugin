@@ -8,15 +8,20 @@ import com.atlassian.bamboo.plan.PlanKey;
 
 public class LoggingUtils {
 
+    private LoggingUtils() {
+    }
+
+    private static final String APPLICATION_NAME = "[BAMBOO-SERVER-NOTIFICATION] ";
+
     public static void logDebug(String message, PlanKey planKey, Logger log) {
         String planKeyString = planKey != null ? "[" + planKey + "] " : "";
-        String logMessage = "[BAMBOO-SERVER-NOTIFICATION] " + planKeyString + message;
+        String logMessage = APPLICATION_NAME + planKeyString + message;
         log.debug(logMessage);
     }
 
     public static void logInfo(String message, BuildLoggerManager buildLoggerManager, PlanKey planKey, Logger log) {
         String planKeyString = planKey != null ? "[" + planKey + "] " : "";
-        String logMessage = "[BAMBOO-SERVER-NOTIFICATION] " + planKeyString + message;
+        String logMessage = APPLICATION_NAME + planKeyString + message;
         if (buildLoggerManager != null && planKey != null) {
             BuildLogger buildLogger = buildLoggerManager.getLogger(planKey);
             buildLogger.addBuildLogEntry(logMessage);
@@ -26,7 +31,7 @@ public class LoggingUtils {
 
     public static void logError(String message, BuildLoggerManager buildLoggerManager, PlanKey planKey, Logger log, Exception e) {
         String planKeyString = planKey != null ? "[" + planKey + "] " : "";
-        String logMessage = "[BAMBOO-SERVER-NOTIFICATION] " + planKeyString + message;
+        String logMessage = APPLICATION_NAME + planKeyString + message;
         if (buildLoggerManager != null && planKey != null) {
             BuildLogger buildLogger = buildLoggerManager.getLogger(planKey);
             buildLogger.addErrorLogEntry(logMessage);

@@ -4,6 +4,9 @@ import org.apache.commons.io.FilenameUtils;
 
 public class StaticCodeAnalysisUtils {
 
+    private StaticCodeAnalysisUtils() {
+    }
+
     /**
      * Returns whether the specified filename is a file supported by the
      * static code analysis parser.

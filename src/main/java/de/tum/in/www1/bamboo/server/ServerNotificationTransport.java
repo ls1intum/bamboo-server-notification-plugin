@@ -7,6 +7,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+
+import model.TestResultsWithSuccessInfo;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -96,6 +99,8 @@ public class ServerNotificationTransport implements NotificationTransport {
     // We are only interested in logs coming from the build, not in logs from Bamboo
     final List<Class<?>> logEntryTypes = ImmutableList.of(LogEntry.class);
 
+    private final CustomFeedbackParser customFeedbackParser;
+
     public ServerNotificationTransport(String webhookUrl, @Nullable ImmutablePlan plan, @Nullable ResultsSummary resultsSummary, CustomVariableContext customVariableContext,
             @Nullable BuildLoggerManager buildLoggerManager, @Nullable BuildLogFileAccessorFactory buildLogFileAccessorFactory) {
         this.webhookUrl = customVariableContext.substituteString(webhookUrl);
@@ -103,6 +108,7 @@ public class ServerNotificationTransport implements NotificationTransport {
         this.resultsSummary = resultsSummary;
         this.buildLoggerManager = buildLoggerManager;
         this.buildLogFileAccessorFactory = buildLogFileAccessorFactory;
+        this.customFeedbackParser = new CustomFeedbackParser(artifactLinkManager, buildLoggerManager, plan);
         this.customVariableContext = customVariableContext;
 
         URI uri;
@@ -222,100 +228,99 @@ public class ServerNotificationTransport implements NotificationTransport {
                 jsonObject.put("plan", planDetails);
             }
 
-            if (resultsSummary != null) {
-                JSONObject buildDetails = new JSONObject();
-                buildDetails.put("number", resultsSummary.getBuildNumber());
-                buildDetails.put("reason", resultsSummary.getShortReasonSummary());
-                buildDetails.put("successful", resultsSummary.isSuccessful());
-                buildDetails.put("buildCompletedDate", ZonedDateTime.ofInstant(resultsSummary.getBuildCompletedDate().toInstant(), ZoneId.systemDefault()));
+            if (resultsSummary == null) {
+                return jsonObject;
+            }
 
-                // ResultsSummary only contains shared artifacts. Job level artifacts are not available here
-                buildDetails.put("artifact", !resultsSummary.getArtifactLinks().isEmpty());
+            TestResultsSummary testResultsSummary = resultsSummary.getTestResultsSummary();
 
-                TestResultsSummary testResultsSummary = resultsSummary.getTestResultsSummary();
-                JSONObject testResultOverview = new JSONObject();
-                testResultOverview.put("description", testResultsSummary.getTestSummaryDescription());
-                testResultOverview.put("totalCount", testResultsSummary.getTotalTestCaseCount());
-                testResultOverview.put("failedCount", testResultsSummary.getFailedTestCaseCount());
-                testResultOverview.put("existingFailedCount", testResultsSummary.getExistingFailedTestCount());
-                testResultOverview.put("fixedCount", testResultsSummary.getFixedTestCaseCount());
-                testResultOverview.put("newFailedCount", testResultsSummary.getNewFailedTestCaseCount());
-                testResultOverview.put("ignoredCount", testResultsSummary.getIgnoredTestCaseCount());
-                testResultOverview.put("quarantineCount", testResultsSummary.getQuarantinedTestCaseCount());
-                testResultOverview.put("skippedCount", testResultsSummary.getSkippedTestCaseCount());
-                testResultOverview.put("successfulCount", testResultsSummary.getSuccessfulTestCaseCount());
-                testResultOverview.put("duration", testResultsSummary.getTotalTestDuration());
+            // We update these variables so that they reflect custom feedback tests.
+            int totalTestCount = testResultsSummary.getTotalTestCaseCount();
+            int failedTestCount = testResultsSummary.getFailedTestCaseCount();
+            int successfulTestCount = testResultsSummary.getSuccessfulTestCaseCount();
 
-                buildDetails.put("testSummary", testResultOverview);
+            JSONObject buildDetails = new JSONObject();
 
-                // The branch name can only be accessed from the ResultsContainer -> We can only add it later to the changesetDetails JSONObject.
-                // As we can not access it easily from the vcsDetails JSONArray, we keep a reference to the changesetDetails JSONObject, which will later be used to
-                // get the correct changesetDetails JSONObject based on the repository name
-                Map<String, JSONObject> repositoryToVcsDetails = new HashMap<>();
+            // The branch name can only be accessed from the ResultsContainer -> We can only add it later to the changesetDetails JSONObject.
+            // As we can not access it easily from the vcsDetails JSONArray, we keep a reference to the changesetDetails JSONObject, which will later be used to
+            // get the correct changesetDetails JSONObject based on the repository name
+            Map<String, JSONObject> repositoryToVcsDetails = new HashMap<>();
+            JSONArray vcsDetails = new JSONArray();
+            for (RepositoryChangeset changeset : resultsSummary.getRepositoryChangesets()) {
+                JSONObject changesetDetails = new JSONObject();
+                changesetDetails.put("id", changeset.getChangesetId());
+                changesetDetails.put("repositoryName", changeset.getRepositoryData().getName());
 
-                JSONArray vcsDetails = new JSONArray();
-                for (RepositoryChangeset changeset : resultsSummary.getRepositoryChangesets()) {
-                    JSONObject changesetDetails = new JSONObject();
-                    changesetDetails.put("id", changeset.getChangesetId());
-                    changesetDetails.put("repositoryName", changeset.getRepositoryData().getName());
+                JSONArray commits = new JSONArray();
+                for (Commit commit : changeset.getCommits()) {
+                    JSONObject commitDetails = new JSONObject();
+                    commitDetails.put("id", commit.getChangeSetId());
+                    commitDetails.put("comment", commit.getComment());
 
-                    JSONArray commits = new JSONArray();
-                    for (Commit commit : changeset.getCommits()) {
-                        JSONObject commitDetails = new JSONObject();
-                        commitDetails.put("id", commit.getChangeSetId());
-                        commitDetails.put("comment", commit.getComment());
-
-                        commits.put(commitDetails);
-                    }
-
-                    changesetDetails.put("commits", commits);
-
-                    vcsDetails.put(changesetDetails);
-                    // Put a reference to later access it when adding the branch name
-                    repositoryToVcsDetails.put(changeset.getRepositoryData().getName(), changesetDetails);
+                    commits.put(commitDetails);
                 }
-                buildDetails.put("vcs", vcsDetails);
 
-                if (resultsSummary instanceof ChainResultsSummary) {
-                    ChainResultsSummary chainResultsSummary = (ChainResultsSummary) resultsSummary;
-                    JSONArray jobs = new JSONArray();
-                    for (ChainStageResult chainStageResult : chainResultsSummary.getStageResults()) {
-                        for (BuildResultsSummary buildResultsSummary : chainStageResult.getBuildResults()) {
-                            JSONObject jobDetails = new JSONObject();
+                changesetDetails.put("commits", commits);
 
-                            jobDetails.put("id", buildResultsSummary.getId());
+                vcsDetails.put(changesetDetails);
+                // Put a reference to later access it when adding the branch name
+                repositoryToVcsDetails.put(changeset.getRepositoryData().getName(), changesetDetails);
+            }
+            buildDetails.put("vcs", vcsDetails);
 
-                            LoggingUtils.logInfo("Loading cached test results for job " + buildResultsSummary.getId(), buildLoggerManager, plan.getPlanKey(), log);
-                            ResultsContainer resultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
-                            if (resultsContainer != null) {
-                                // We just extracted the ResultsContainer, so we can clear it from the map now.
-                                ServerNotificationRecipient.getCachedTestResults().remove(buildResultsSummary.getPlanResultKey().toString());
-                                long secondsInMap = (System.currentTimeMillis() - resultsContainer.getInitTimestamp()) / 1000;
+            if (resultsSummary instanceof ChainResultsSummary) {
+                ChainResultsSummary chainResultsSummary = (ChainResultsSummary) resultsSummary;
+                JSONArray jobs = new JSONArray();
+                for (ChainStageResult chainStageResult : chainResultsSummary.getStageResults()) {
+                    for (BuildResultsSummary buildResultsSummary : chainStageResult.getBuildResults()) {
+                        JSONObject jobDetails = new JSONObject();
+                        jobDetails.put("id", buildResultsSummary.getId());
 
-                                LoggingUtils.logInfo("Tests results found - was in map for " + secondsInMap + " seconds", buildLoggerManager, plan.getPlanKey(), log);
-                                JSONArray successfulTestDetails = createTestsResultsJSONArray(resultsContainer.getSuccessfulTests(), false);
-                                jobDetails.put("successfulTests", successfulTestDetails);
+                        LoggingUtils.logInfo("Loading cached test results for job " + buildResultsSummary.getId(), buildLoggerManager, plan.getPlanKey(), log);
+                        ResultsContainer resultsContainer = ServerNotificationRecipient.getCachedTestResults().get(buildResultsSummary.getPlanResultKey().toString());
+                        if (resultsContainer != null) {
+                            // We just extracted the ResultsContainer, so we can clear it from the map now.
+                            ServerNotificationRecipient.getCachedTestResults().remove(buildResultsSummary.getPlanResultKey().toString());
+                            long secondsInMap = (System.currentTimeMillis() - resultsContainer.getInitTimestamp()) / 1000;
 
-                                JSONArray skippedTestDetails = createTestsResultsJSONArray(resultsContainer.getSkippedTests(), false);
-                                jobDetails.put("skippedTests", skippedTestDetails);
+                            LoggingUtils.logInfo("Tests results found - was in map for " + secondsInMap + " seconds", buildLoggerManager, plan.getPlanKey(), log);
+                            JSONArray successfulTestDetails = createTestsResultsJSONArray(resultsContainer.getSuccessfulTests(), false);
+                            jobDetails.put("successfulTests", successfulTestDetails);
+                            // Parse custom feedbacks that will be injected in the successful and failed tests
+                            // Also update the total test count to reflect these ones.
+                            Collection<TestResultsWithSuccessInfo> customFeedbacks = customFeedbackParser.extractCustomFeedbacks(buildResultsSummary.getProducedArtifactLinks(),
+                                    buildResultsSummary.getId());
+                            totalTestCount += customFeedbacks.size();
 
-                                JSONArray failedTestDetails = createTestsResultsJSONArray(resultsContainer.getFailedTests(), true);
-                                jobDetails.put("failedTests", failedTestDetails);
+                            log.debug("Loading cached test results for job " + buildResultsSummary.getId());
 
-                                JSONArray taskResults = createTasksJSONArray(resultsContainer.getTaskResults());
-                                jobDetails.put("tasks", taskResults);
+                            // Retrieve successful custom feedback tests and update the successful test count
+                            Collection<TestResults> successfulTests = resultsContainer.getSuccessfulTests();
+                            successfulTests.addAll(customFeedbacks.stream().filter(customFeedback -> !customFeedback.hasErrors()).collect(Collectors.toList()));
+                            successfulTestCount = successfulTests.size();
 
-                                // Put the branch name in the referenced changesetDetails JSONObject
-                                for (Map.Entry<String, String> repositoryToBranchEntry : resultsContainer.getRepositoryToBranchMap().entrySet()) {
-                                    JSONObject changesetDetails = repositoryToVcsDetails.get(repositoryToBranchEntry.getKey());
-                                    if (changesetDetails != null) {
-                                        changesetDetails.put("branchName", repositoryToBranchEntry.getValue());
-                                    }
+                            JSONArray skippedTestDetails = createTestsResultsJSONArray(resultsContainer.getSkippedTests(), false);
+                            jobDetails.put("skippedTests", skippedTestDetails);
+
+                            // Retrieve failed custom feedback tests and update the failed test count
+                            Collection<TestResults> failedTests = resultsContainer.getFailedTests();
+                            failedTests.addAll(customFeedbacks.stream().filter(TestResults::hasErrors).collect(Collectors.toList()));
+                            failedTestCount = failedTests.size();
+
+                            JSONArray failedTestDetails = createTestsResultsJSONArray(failedTests, true);
+                            jobDetails.put("failedTests", failedTestDetails);
+
+                            JSONArray taskResults = createTasksJSONArray(resultsContainer.getTaskResults());
+                            jobDetails.put("tasks", taskResults);
+
+                            // Put the branch name in the referenced changesetDetails JSONObject
+                            for (Map.Entry<String, String> repositoryToBranchEntry : resultsContainer.getRepositoryToBranchMap().entrySet()) {
+                                JSONObject changesetDetails = repositoryToVcsDetails.get(repositoryToBranchEntry.getKey());
+                                if (changesetDetails != null) {
+                                    changesetDetails.put("branchName", repositoryToBranchEntry.getValue());
                                 }
                             }
-                            else {
-                                LoggingUtils.logError("Could not load cached test results!", buildLoggerManager, plan.getPlanKey(), log, null);
-                            }
+
                             LoggingUtils.logInfo("Loading artifacts for job " + buildResultsSummary.getId(), buildLoggerManager, plan.getPlanKey(), log);
                             try {
                                 // Note: we cannot directly access buildResultsSummary.getProducedArtifactLinks() because it is a lazy Hibernate collection
@@ -368,8 +373,31 @@ public class ServerNotificationTransport implements NotificationTransport {
                     buildDetails.put("failedJobs", jobs);
                 }
                 jsonObject.put("build", buildDetails);
-            }
 
+                buildDetails.put("number", resultsSummary.getBuildNumber());
+                buildDetails.put("reason", resultsSummary.getShortReasonSummary());
+                buildDetails.put("successful", resultsSummary.isSuccessful());
+                buildDetails.put("buildCompletedDate", ZonedDateTime.ofInstant(resultsSummary.getBuildCompletedDate().toInstant(), ZoneId.systemDefault()));
+
+                // ResultsSummary only contains shared artifacts. Job level artifacts are not available here
+                buildDetails.put("artifact", !resultsSummary.getArtifactLinks().isEmpty());
+
+                JSONObject testResultOverview = new JSONObject();
+                testResultOverview.put("description", testResultsSummary.getTestSummaryDescription());
+                testResultOverview.put("totalCount", totalTestCount);
+                testResultOverview.put("failedCount", failedTestCount);
+                testResultOverview.put("existingFailedCount", testResultsSummary.getExistingFailedTestCount());
+                testResultOverview.put("fixedCount", testResultsSummary.getFixedTestCaseCount());
+                testResultOverview.put("newFailedCount", testResultsSummary.getNewFailedTestCaseCount());
+                testResultOverview.put("ignoredCount", testResultsSummary.getIgnoredTestCaseCount());
+                testResultOverview.put("quarantineCount", testResultsSummary.getQuarantinedTestCaseCount());
+                testResultOverview.put("skippedCount", testResultsSummary.getSkippedTestCaseCount());
+                testResultOverview.put("successfulCount", successfulTestCount);
+                testResultOverview.put("duration", testResultsSummary.getTotalTestDuration());
+
+                buildDetails.put("testSummary", testResultOverview);
+
+            }
         }
         catch (Exception e) {
             LoggingUtils.logError("Error during createJSONObject :" + e.getMessage(), buildLoggerManager, plan.getPlanKey(), log, e);
@@ -412,8 +440,9 @@ public class ServerNotificationTransport implements NotificationTransport {
 
     /**
      * Find and returns a JSONArray from the testwise coverage reports if exists
+     *
      * @param artifactLinks all artifact links from the build to search in
-     * @param jobId the job id
+     * @param jobId         the job id
      * @return a JSONArray containing all testwise coverage reports if this artifact exists, otherwise null
      */
     private JSONArray createTestwiseCoverageJSONObject(Collection<ArtifactLink> artifactLinks, long jobId) {
@@ -518,10 +547,19 @@ public class ServerNotificationTransport implements NotificationTransport {
             testResultsJSON.put("errors", testCaseErrorDetails);
         }
 
+        if (testResults instanceof TestResultsWithSuccessInfo) {
+            TestResultsWithSuccessInfo testResultsWithSuccessInfo = (TestResultsWithSuccessInfo) testResults;
+            if (testResultsWithSuccessInfo.hasSuccessMessage()) {
+                JSONObject messageJson = new JSONObject().put("message", testResultsWithSuccessInfo.getSuccessMessage());
+                testResultsJSON.put("successInfos", messageJson);
+            }
+        }
+
         return testResultsJSON;
     }
 
-    private JSONArray createTestsResultsJSONArray(Collection<TestResults> testResultsCollection, boolean addErrors) throws JSONException {
+    private JSONArray createTestsResultsJSONArray(Collection<TestResults> testResultsCollection,
+            boolean addErrors) throws JSONException {
         LoggingUtils.logInfo("Creating test results JSON array", buildLoggerManager, plan != null ? plan.getPlanKey() : null, log);
         JSONArray testResultsArray = new JSONArray();
         for (TestResults testResults : testResultsCollection) {
