@@ -20,6 +20,8 @@
         <interface>com.atlassian.bamboo.variable.VariableDefinitionManager</interface>
     </component-import>
 
+    <component-import key="i18nResolver" interface="com.atlassian.sal.api.message.I18nResolver"/>
+
     <component-import key="artifactLinkManager" interface="com.atlassian.bamboo.build.artifact.ArtifactLinkManager"/>
 
     <component-import key="buildLoggerManager" interface="com.atlassian.bamboo.build.BuildLoggerManager"/>
