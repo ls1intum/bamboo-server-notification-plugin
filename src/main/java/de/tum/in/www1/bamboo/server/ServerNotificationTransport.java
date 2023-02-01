@@ -556,7 +556,14 @@ public class ServerNotificationTransport implements NotificationTransport {
 
     private JSONObject createLogEntryJSONObject(LogEntry logEntry) throws JSONException {
         JSONObject logEntryObject = new JSONObject();
-        logEntryObject.put("log", logEntry.getLog());
+        // Note: The following code is duplicated into Artemis: BambooService:retrieveLatestBuildLogsFromBamboo
+        String logString = logEntry.getUnstyledLog();
+        // The log is provided in two attributes: with unescaped characters in unstyledLog and with escaped characters in log
+        // We want to have unescaped characters but fall back to the escaped characters in case no unescaped characters are present
+        if (logString == null) {
+            logString = logEntry.getLog();
+        }
+        logEntryObject.put("log", logString);
         logEntryObject.put("date", ZonedDateTime.ofInstant(logEntry.getDate().toInstant(), ZoneId.systemDefault()));
 
         return logEntryObject;
