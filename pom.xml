@@ -9,7 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.tum.in.www1</groupId>
     <artifactId>bamboo-server</artifactId>
-    <version>1.7.1</version>
+    <version>1.8.0</version>
     <organization>
         <name>LS1 TUM</name>
         <url>https://ase.in.tum.de</url>
@@ -28,7 +28,7 @@
         <amps.version>8.9.1</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
         <atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
-        <platform.version>4.0.0</platform.version>
+        <platform.version>6.1.5</platform.version>
         <jackson.version>2.13.4.2</jackson.version>
         <spotless.version>2.27.2</spotless.version>
         <junit-jupiter.version>5.9.2</junit-jupiter.version>
