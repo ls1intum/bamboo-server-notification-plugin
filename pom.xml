@@ -25,14 +25,14 @@
     <properties>
         <bamboo.version>9.2.1</bamboo.version>
         <bamboo.data.version>${bamboo.version}</bamboo.data.version>
-        <amps.version>8.9.1</amps.version>
+        <amps.version>8.9.2</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
         <atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
         <platform.version>6.1.5</platform.version>
-        <jackson.version>2.13.4.2</jackson.version>
-        <spotless.version>2.27.2</spotless.version>
+        <jackson.version>2.14.2</jackson.version>
+        <spotless.version>2.46.0</spotless.version>
         <junit-jupiter.version>5.9.2</junit-jupiter.version>
-        <mockito.version>5.1.1</mockito.version>
+        <mockito.version>5.3.0</mockito.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
