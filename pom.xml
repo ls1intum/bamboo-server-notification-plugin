@@ -32,7 +32,7 @@
         <jackson.version>2.14.2</jackson.version>
         <spotless.version>2.36.0</spotless.version>
         <junit-jupiter.version>5.9.2</junit-jupiter.version>
-        <mockito.version>5.3.0</mockito.version>
+        <mockito.version>5.4.0</mockito.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -121,13 +121,13 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20230227</version>
+            <version>20230618</version>
         </dependency>
         <dependency>
             <!-- jsoup HTML parser library @ http://jsoup.org/ -->
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.15.4</version>
+            <version>1.16.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
