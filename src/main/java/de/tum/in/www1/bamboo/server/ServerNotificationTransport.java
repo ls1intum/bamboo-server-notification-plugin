@@ -88,7 +88,7 @@ public class ServerNotificationTransport implements NotificationTransport {
     private final ArtifactLinkManager artifactLinkManager = (ArtifactLinkManager) ContainerManager.getComponent("artifactLinkManager");
 
     // Maximum length for the feedback text. The feedback will be truncated afterwards
-    private static final int LONG_FEEDBACK_MAX_LENGTH = 10_000_000;
+    private static final int FEEDBACK_MAX_LENGTH = 10_000;
 
     // Maximum number of lines of log per job. The last lines will be taken.
     private static final int JOB_LOG_MAX_LINES = 5000;
@@ -510,8 +510,8 @@ public class ServerNotificationTransport implements NotificationTransport {
             JSONArray testCaseErrorDetails = new JSONArray();
             for (TestCaseResultError testCaseResultError : testResults.getErrors()) {
                 String errorMessageString = testCaseResultError.getContent();
-                if (errorMessageString != null && errorMessageString.length() > LONG_FEEDBACK_MAX_LENGTH) {
-                    errorMessageString = errorMessageString.substring(0, LONG_FEEDBACK_MAX_LENGTH);
+                if (errorMessageString != null && errorMessageString.length() > FEEDBACK_MAX_LENGTH) {
+                    errorMessageString = errorMessageString.substring(0, FEEDBACK_MAX_LENGTH);
                 }
                 testCaseErrorDetails.put(errorMessageString);
             }
