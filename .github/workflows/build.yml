@@ -27,7 +27,7 @@ jobs:
         with:
           java-version: '${{ env.java }}'
           distribution: '${{ env.java-distribution }}'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Cache Maven packages
@@ -105,9 +105,9 @@ jobs:
         with:
           java-version: '${{ env.java }}'
           distribution: '${{ env.java-distribution }}'
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Cache Maven packages
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
