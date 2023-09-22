@@ -9,7 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.tum.in.www1</groupId>
     <artifactId>bamboo-server</artifactId>
-    <version>1.7.1</version>
+    <version>1.8.0</version>
     <organization>
         <name>LS1 TUM</name>
         <url>https://ase.in.tum.de</url>
@@ -23,16 +23,16 @@
     <description>Notify a Server when a build was executed.</description>
     <packaging>atlassian-plugin</packaging>
     <properties>
-        <bamboo.version>8.2.5</bamboo.version>
+        <bamboo.version>9.3.3</bamboo.version>
         <bamboo.data.version>${bamboo.version}</bamboo.data.version>
-        <amps.version>8.2.3</amps.version>
+        <amps.version>8.10.1</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
         <atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
-        <platform.version>4.0.0</platform.version>
-        <jackson.version>2.13.4.2</jackson.version>
-        <spotless.version>2.27.2</spotless.version>
-        <junit-jupiter.version>5.9.2</junit-jupiter.version>
-        <mockito.version>5.1.1</mockito.version>
+        <platform.version>6.1.6</platform.version>
+        <jackson.version>2.15.2</jackson.version>
+        <spotless.version>2.39.0</spotless.version>
+        <junit-jupiter.version>5.10.0</junit-jupiter.version>
+        <mockito.version>5.5.0</mockito.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -121,13 +121,13 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20220924</version>
+            <version>20230618</version>
         </dependency>
         <dependency>
             <!-- jsoup HTML parser library @ http://jsoup.org/ -->
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.15.3</version>
+            <version>1.16.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
@@ -168,8 +168,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.10.1</version>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
             <plugin>

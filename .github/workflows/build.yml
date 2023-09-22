@@ -14,7 +14,8 @@ on:
       - '!.github/workflows/**'
 
 env:
-  java: 1.8
+  java: 11
+  java-distribution: "temurin"
 
 jobs:
 
@@ -22,14 +23,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Java
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: '${{ env.java }}'
-      - uses: actions/checkout@v2
+          distribution: '${{ env.java-distribution }}'
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Cache Maven packages
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -99,12 +101,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Java
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: '${{ env.java }}'
-      - uses: actions/checkout@v2
+          distribution: '${{ env.java-distribution }}'
+      - uses: actions/checkout@v4
       - name: Cache Maven packages
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
