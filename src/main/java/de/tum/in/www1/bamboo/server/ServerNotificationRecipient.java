@@ -1,5 +1,8 @@
 package de.tum.in.www1.bamboo.server;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,7 +21,10 @@ import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.plugin.descriptor.NotificationRecipientModuleDescriptor;
 import com.atlassian.bamboo.resultsummary.ResultsSummary;
 import com.atlassian.bamboo.template.TemplateRenderer;
+import com.atlassian.bamboo.utils.error.ErrorCollection;
+import com.atlassian.bamboo.utils.error.SimpleErrorCollection;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.sal.api.message.I18nResolver;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -28,6 +34,8 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
     private static final String WEBHOOK_URL = "webhookUrl";
 
     private String webhookUrl = null;
+
+    private I18nResolver i18n;
 
     private TemplateRenderer templateRenderer;
 
@@ -58,13 +66,32 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
 
     @Override
     public void populate(@NotNull Map<String, String[]> params) {
-        for (String next : params.keySet()) {
-            System.out.println("next = " + next);
-        }
         if (params.containsKey(WEBHOOK_URL)) {
-            int i = params.get(WEBHOOK_URL).length - 1;
-            this.webhookUrl = params.get(WEBHOOK_URL)[i];
+            this.webhookUrl = this.getParam(WEBHOOK_URL, params);
         }
+    }
+
+    private boolean isValidURL(String url) {
+        try {
+            new URL(url).toURI();
+            return true;
+        }
+        catch (MalformedURLException | URISyntaxException e) {
+            return false;
+        }
+    }
+
+    @NotNull
+    @Override
+    public ErrorCollection validate(@NotNull Map<String, String[]> params) {
+        ErrorCollection errorCollection = new SimpleErrorCollection();
+
+        webhookUrl = this.getParam(WEBHOOK_URL, params);
+        if (webhookUrl != null && (webhookUrl.isEmpty() || !isValidURL(webhookUrl))) {
+            errorCollection.addError(WEBHOOK_URL, i18n.getText("server.webhookUrl.invalid"));
+        }
+
+        return errorCollection;
     }
 
     @Override
@@ -167,5 +194,9 @@ public class ServerNotificationRecipient extends AbstractNotificationRecipient
 
     public void setCustomVariableContext(CustomVariableContext customVariableContext) {
         this.customVariableContext = customVariableContext;
+    }
+
+    public void setI18nResolver(I18nResolver i18n) {
+        this.i18n = i18n;
     }
 }
